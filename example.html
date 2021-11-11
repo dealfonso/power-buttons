@@ -1,0 +1,169 @@
+<html>
+    <head>
+        <title>Testing confirm button</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css">
+        <script src="confirmbutton.js"></script>
+        <style type="text/css">
+        li[confirm] {
+            cursor: hand;
+        }
+        code {
+            display: block;
+            white-space: pre !important;
+            background-color: #eee;
+            padding: 10px;
+            border: 1px solid #ccc;
+            color: #333;
+            overflow: auto;
+        }
+        </style>
+    </head>
+    <body class="w-75 mx-auto py-5">
+        <h3>Dummy button that asks for confirmation but does nothing.</h3>
+        <p class="small">The "confirm" attribute is set.</p>
+        <button type="button" class="btn btn-primary" confirm="Are your sure?">clickme</button>
+        <code class="language-html">
+<button type="button" class="btn btn-primary" confirm="Are your sure?">clickme</button>
+        </code>
+        <h3>Simple button that shows an alert upon confirming.</h3>
+        <p class="small">The "confirm" attribute is set, and a click handler is also set.</p>
+        <button type="button" class="first btn btn-primary" onclick="alert('confirmed');">clickme</button>
+        <code>
+<button type="button" class="first btn btn-primary" onclick="alert('confirmed');">clickme</button>
+<script>
+$(function() {
+    $('button.first').confirmButton({
+        confirm: "Are you really sure?"
+    });
+});
+</script>
+        </code>
+        </pre>
+        <h3>Pair of buttons that have onclick property and other jquery click handlers</h3>
+        <p class="small">The "confirm" attribute is set for each button, and they have click handlers and onclick handler.</p>
+        <button type="button" class="second btn btn-primary" confirm="Are your sure?" onclick="alert('confirmed');">clickme</button>
+        <button type="button" class="third btn btn-secondary disabled" onclick="alert('I confirm too');">clickme too</button>
+        <code>
+<button type="button" class="second btn btn-primary" confirm="Are your sure?" onclick="alert('confirmed');">clickme</button>
+<button type="button" class="third btn btn-secondary disabled" onclick="alert('I confirm too');">clickme too</button>
+<script>
+    $(function() {
+        $('button.second').click(function() {
+            $('button.third').removeClass("disabled");
+            $(this).addClass("disabled");
+        })
+        $('button.third').click(function() {
+            $('button.second').removeClass("disabled");
+            $(this).addClass("disabled");
+        })
+    });
+</script>
+    </code>
+        <h3>Form that asks for confirmation prior to submitting</h3>
+        <p class="small">The "confirm" attribute is set to the submit button.</p>
+        <form>
+            <input type="text" name="name" placeholder="name to submit">
+            <button type="submit" class="btn btn-success" confirm="Want to submit?">submit</button>
+        </form>
+<code>
+<form>
+    <input type="text" name="name" placeholder="name to submit">
+    <button type="submit" class="btn btn-success" confirm="Want to submit?">submit</button>
+</form>
+</code>
+        <h3>Custom dialog</h3>
+        <p class="small">A bootstrap modal dialog is created. The "confirm" attribute is set to empty, and the data-dialog is set to a selector that obtains the dialog; then the data-confirmbtn is set to a selector to get the "save" button from the dialog.</p>
+        <div class="modal" tabindex="-1" id="myconfirmdlg" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Modal title</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <h3>Are you sure you want to save data?</h3>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-primary save">Save changes</button>
+                </div>
+              </div>
+            </div>
+        </div>
+        <form>
+            <input type="text" name="q">
+            <button confirm data-dialog="#myconfirmdlg" data-confirmbtn="button.save" type="submit">Send</button>
+        </form>
+        <code>
+<div class="modal" tabindex="-1" id="myconfirmdlg" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Modal title</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <h3>Are you sure you want to save data?</h3>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary save">Save changes</button>
+        </div>
+        </div>
+    </div>
+</div>
+<form>
+    <input type="text" name="q">
+    <button confirm data-dialog="#myconfirmdlg" data-confirmbtn="button.save" type="submit">Send</button>
+</form>
+        </code>
+        <h3>Using in a link</h3>
+        <p class="small">The "confirm" attribute is set to the &lt;a&gt; tag</p>
+        <a href="https://www.google.es" confirm="Want to go to google?">clickme</a>
+        <code>
+<a href="https://www.google.es" confirm="Want to go to google?">clickme</a>
+        </code>
+        <h3>Using in a list</h3>
+        <p class="small">The "confirm" attribute is set to the different &lt;li&gt; items.</p>
+        <ul>
+            <li confirm="Confirm item 1">item 1</li>
+            <li confirm="Confirm item 2">item 2</li>
+            <li confirm="Confirm item 3">item 3</li>
+        </ul>
+        <code>
+<ul>
+    <li confirm="Confirm item 1">item 1</li>
+    <li confirm="Confirm item 2">item 2</li>
+    <li confirm="Confirm item 3">item 3</li>
+</ul>
+        </code>
+        <h3>Using in an image</h3>
+        <p class="small">The "confirm" attribute is set to the svg image.</p>
+        <svg confirm="thank you for clicking!" width="250" height="85" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+            <g class="layer">
+                <path d="m3.597496,42.999994c0,-21.21685 52.091728,-38.402498 116.402503,-38.402498c64.310775,0 116.402503,17.185648 116.402503,38.402498c0,21.21685 -52.091728,38.402498 -116.402503,38.402498c-64.310775,0 -116.402503,-17.185648 -116.402503,-38.402498z" fill="#00bfbf" id="svg_7" stroke="#000000" stroke-dasharray="null" stroke-linecap="null" stroke-linejoin="null" stroke-width="5"/>
+                <text fill="#000000" font-family="Sans-serif" font-size="29" id="svg_8" stroke="#000000" stroke-dasharray="null" stroke-linecap="null" stroke-linejoin="null" stroke-width="0" text-anchor="middle" x="121.5" xml:space="preserve" y="51.5">Touch me</text>
+            </g>
+        </svg>
+        <code>
+<svg confirm="thank you for clicking!" width="250" height="85" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+    <g class="layer">
+        <path d="m3.597496,42.999994c0,-21.21685 52.091728,-38.402498 116.402503,-38.402498c64.310775,0 116.402503,17.185648 116.402503,38.402498c0,21.21685 -52.091728,38.402498 -116.402503,38.402498c-64.310775,0 -116.402503,-17.185648 -116.402503,-38.402498z" fill="#00bfbf" id="svg_7" stroke="#000000" stroke-dasharray="null" stroke-linecap="null" stroke-linejoin="null" stroke-width="5"/>
+        <text fill="#000000" font-family="Sans-serif" font-size="29" id="svg_8" stroke="#000000" stroke-dasharray="null" stroke-linecap="null" stroke-linejoin="null" stroke-width="0" text-anchor="middle" x="121.5" xml:space="preserve" y="51.5">Touch me</text>
+    </g>
+</svg>    
+        </code>
+        </body>
+        <script>
+        $(function() {
+            $('pre').each(function() {
+                $(this).html($(this).html().trim());
+            })
+            $('code').each(function() {
+                $(this).text($(this).html().trim());
+            })
+        })
+        </script>
+</html>
