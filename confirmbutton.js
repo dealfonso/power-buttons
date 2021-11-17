@@ -1,267 +1,395 @@
-/**
+(function(exports, document) {
 
-Copyright 2021 Carlos de Alfonso (https://github.com/dealfonso)
+    /*
+    function confirmButtons(fn, context) {
 
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-*/
-
-/**
- * 
- * This file enables to create buttons that show a confirmation modal prior to executing the function that they should execute
- *  The basic syntax is
- *      <button confirm="Are you sure?">Execute</button>
- * 
- *  The button will show a modal using bootstrap's $(...).modal() function prior to executing the function that the button should 
- *  execute. Any listener in the button will be executed only if the modal is confirmed.
- * 
- *  The full list of options is:
- *      confirm: The message to show in the modal
- *      data-texttarget: The selector to use to put the confirm message in the modal. Default: "p.confirm-text"
- *      data-confirmbtn: The selector to use to get the confirm button (this is needed to work properly; if not found the confirmation
- *          cannot be detected). Default: "button.confirm"
- *      data-cancelbtn: The selector to use to get the cancel button (this is not needed if the modal can be cancelled using other means
- *          like esc-key). Default: "button.cancel"
- *      data-dialog: The selector to use to get the dialog. If not provided or not found, a default dialog will be created to confirm
- *          and destroyed once the modal is closed.
- *      data-canceltxt: The text to show in the cancel button. It is only valid if data-dialog is not used. Default: "Cancel". 
- *      data-confirmtxt: The text to show in the confirm button. It is only valid if data-dialog is not used. Default: "Confirm". 
- */
-
-// This is a "on" replacement to prepend an event to any other of its type
-$.fn.prependon = function(evtype, fnc) {
-    $(this).each(function() {
-        let $this = $(this);
-        $this.on(evtype, fnc);
-        let events = $._data(this, 'events');
-        if (events && events[evtype]) {
-            events[evtype].unshift(events[evtype].pop());
-        }
-    })
-}
-
-$.fn.confirmButton = function(options = {}) {
-    // Function that creates a simple modal dialog that contains some placeholders to include custom messages
-    function createDialog() {
-        let $dialog = $('<div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">');
-        $dialog.append(
-            $('<div class="modal-dialog modal-sm modal-dialog-centered" role="document">').append(
-                $('<div class="modal-content">').append(
-                    $('<div class="modal-body text-center">')
-                    .append($('<p class="confirm-text">'))
-                ).append(
-                    $('<div class="modal-footer">').append(
-                        $('<button type="button" class="btn btn-secondary confirm" data-dismiss="modal">').html('Confirm'),
-                        $('<button type="button" class="btn btn-secondary cancel" data-dismiss="modal">').html('Cancel')
-                    )
-                )
-            )
-        );
-        return $dialog;
-    }
-
-    this.each(function() {
-        if (this._back_onclick === undefined) {
-            this._back_onclick = null;
-        } else {
-            // At this point we are not allowing confirmation chaining
-            console.error("ConfirmButton: The element already has a confirmation dialog");
+        if (typeof fn != "function") {
             return;
         }
 
-        // First we'll remove the onclick method, if exists
-        if ((this.onclick !== undefined) && (this.onclick !== null)) {
-            this._back_onclick = this.onclick;
-            this.onclick = null;
+        function onReady(event) {
+            d.removeEventListener("DOMContentLoaded", onReady);
+            fn.call(context || exports, event);
         }
 
-        // Now we'll prepend the click event to the element
-        $(this).prependon('click', function(e, from = null) {
-            let self = $(this);
+        function onReadyIe(event) {
+            if (d.readyState === "complete") {
+                d.detachEvent("onreadystatechange", onReadyIe);
+                fn.call(context || exports, event);
+            }
+        }
 
-            if (((this._cjqu_click_payload !== undefined) && (this._cjqu_click_payload !== null)) || (from !== null)) {
-                // Clear the payload for next calls
-                this._cjqu_click_payload = null;
+        d.addEventListener && d.addEventListener("DOMContentLoaded", onReady) ||
+        d.attachEvent      && d.attachEvent("onreadystatechange", onReadyIe);
+    }
+    */
+
+    function _default_create_dialog() {
+        /**
+         * Removes those values in the array that are empty (i.e. its string value is "")
+         * @returns the array with the values that are empty removed
+         */
+        Array.prototype._trim = function() {
+            return this.filter(function(e) {
+                return `${e}`.trim() !== "";
+            });
+        }
     
-                // If there was a previous onclick event, we'll execute it
-                if (typeof(this._back_onclick) === 'function') {
-                    this._back_onclick();
-                }
+        /**
+         * This function is a proxy to Element.append, but it returns the object, to enable to chain actions
+         * @param  {...any} args The objects to append to the element
+         * @returns the element
+         */
+        Element.prototype._append = function(...args) {
+            this.append(...args);
+            return this;
+        }
+    
+        /**
+         * This function creates a tag object using a notation like the one used for query selectors (e.g. div#myid.myclass.myclass2)
+         *   if ommited the tag name, it will be considered as a div (e.g. #myid.myclass1.myclass2 or .myclass1.myclass2)
+         * @param {*} tag tag to create in the form '<tag>#<id>.<class1>.<class2>'
+         * @param {*} props other properties to set to the element (e.g. attributes) ** if is a text, it will be interpreted as the text param
+         * @param {*} text text to set to the element (if prop is set to a string, this param will be ignored)
+         * @returns the objet
+         */
+        function createTag(tag, props = {}, text = null) {
+            let parts_id = tag.split('#');
+    
+            let id = null;
+            if (parts_id.length == 1) {
+                tag = parts_id[0];
             } else {
-            // if ((this._cjqu_click_payload === undefined) || (this._cjqu_click_payload === null)) {
+                parts_id[1] = parts_id[1].split('.')
+                id = parts_id[1][0];
+                tag = [ parts_id[0], ...parts_id[1].slice(1) ].join('.');
+            }
+    
+            let parts = tag.split('.');
+            tag = parts[0];
+            if (tag === "") {
+                tag = "div";
+            }
+    
+            if (typeof(props) === "string") {
+                text = props;
+                props = {};
+            }
+    
+            if (text !== null) {
+                props.textContent = text;
+            }
+    
+            if (id !== null) {
+                props.id = id;
+            }
+    
+            props.className = [ props.className, ...parts.slice(1)]._trim().join(" ");
+    
+            let el = document.createElement(tag);
+            for (let prop in props) {
+                if (el[prop] !== undefined) {
+                    el[prop] = props[prop];
+                } else {
+                    el.setAttribute(prop, props[prop]);
+                }
+            }
+            return el;
+        }
+    
+        return createTag(".modal.fade", { tabindex : "-1", role : "dialog", "aria-hidden" : "true", "data-keyboard": "true"  })._append(
+            createTag(".modal-dialog.modal-dialog-centered", { role : "document" })._append(
+                createTag(".modal-content")._append(
+                    createTag(".modal-header")._append(
+                        createTag(".modal-title")._append(
+                            createTag("h5", "Please confirm action")
+                        ),  
+                        createTag("button.close.btn-close", { type: "button", "data-bs-dismiss": "modal", "aria-label": "Close" }
+                    )),
+                    createTag(".modal-body")._append(
+                        createTag("p.message.text-center", "Please confirm this action"),
+                    ),
+                    createTag(".modal-footer")._append(
+                        createTag("button.btn.btn-primary.confirm", { type: "button" }, "Confirm"),
+                        createTag("button.btn.btn-secondary.cancel", { type: "button" }, "Cancel"),
+                    )
+                )
+            )
+        )
+    }
+
+    defaults = {
+        confirm: "Please confirm this action",
+        texttarget: "p.message",
+        confirmbtn: "button.confirm",
+        cancelbtn: "button.cancel",
+        dialog: null,
+        canceltxt: null,
+        confirmtxt: null,
+        dialogfnc: _default_create_dialog
+    };
+
+    function mergeobjects(o1, o2) {
+        let result = {};
+        for (let key in o1) {
+            result[key] = o1[key];
+            if (o2[key] !== undefined) {
+                result[key] = o2[key];
+            }
+        }
+        return result;
+    }
+
+    function addconfirmation(els, options = {}) {
+        // Make sure that it is an array of elements
+        if (typeof els !== "array") {
+            els = [els];
+        }
+
+        // Deal with each element
+        els.forEach(function(el) {
+            if (el === null) {
+                return;
+            }
+
+            // Prepare the list of different settings for each confirmation
+            if (el._confirmations === undefined) {
+                el._confirmations = [];
+            }
+
+            // Add the new settings (we'll prepend it to the list)
+            el._confirmations.unshift(options);
+
+            // If we have backed the onclick element, we already have prepared the element for confirmation, so a new confirmation means simply adding the settings to the _confirmations list
+            if (el._back_onclick === undefined) {
+                el._back_onclick = null;
+                el._confirmation_no = 0;
+            } else {
+                return;
+            }
+
+            // First we'll remove the onclick method, if exists and back it
+            if ((el.onclick !== undefined) && (el.onclick !== null)) {
+                el._back_onclick = el.onclick;
+                el.onclick = null;
+            }
+
+            // Now we'll prepend the click event to the element
+            el.addEventListener('click', function(e) {
+
+                // If we have confirmed anything, just execute the onclick
+                if (this._confirmation_no >= this._confirmations.length) {
+                    this._confirmation_no = 0;
+
+                    // If there was a previous onclick event, we'll execute it
+                    if (typeof(this._back_onclick) === 'function') {
+                        this._back_onclick();
+                    }
+
+                    return;
+                }
+
+                // Grab the current settings
+                let settings = mergeobjects(defaults, this._confirmations[this._confirmation_no]);
+
+                // Has confirmations pending
                 e.preventDefault();
 
                 // Prevent from executing the other handlers
                 e.stopImmediatePropagation();
 
-                // Although the options are for any element, each element found can have its own options
-                let defaults = {
-                    confirm: null,
-                    texttarget: 'p.confirm-text',
-                    confirmbtn: 'button.confirm',
-                    cancelbtn: 'button.cancel',
-                    dialog: null,
-                    canceltxt: null,
-                    confirmtxt: null
-                };
-                let settings = $.extend({}, defaults, options);
-    
                 // The user can provide a dialogo selector to show, via data-dialog attribute. If it is not found, or it is 
                 //  not provided, we'll create a new one.
-                let dialog;
-                if (options.dialog !== undefined) {
-                    dialog = options.dialog;
-                } else {
-                    dialog = self.data('dialog');
-                    if (dialog === undefined)
-                        dialog = settings.dialog;
-                }
-                
+                let dialog = document.querySelector(settings.dialog);
                 let dialog_created = false;
-                let $dialog = $(dialog);
-                if ($dialog.length === 0) {
-                    $dialog = createDialog();
+                if (dialog === null) {
+                    dialog = settings.dialogfnc();
                     dialog_created = true;
                 }
-    
-                // If the dialog was created by this function, we know which are the confirm and cancel buttons.
-                //   Otherwise, we assume that the dialog was created by the user and he can use the same constructions 
-                //   (i.e. button.confirm and button.cancel) or provide the selectors via data-cancelbtn and data-confirmbtn
-                //   attributes.
-                if (dialog_created) {
-                    settings.confirmbtn = 'button.confirm';
-                    settings.cancelbtn = 'button.cancel';
+
+                // Whether to use bootstrap or not
+                let use_bs = true;
+                if (window.bootstrap === undefined) {
+                    use_bs = false;
                 } else {
-                    if (options.cancelbtn === undefined) {
-                        let cancelbtn = self.data('cancelbtn');
-                        if (cancelbtn !== undefined) {
-                            settings.cancelbtn = cancelbtn;
-                        }
-                    }
-                    if (options.confirmbtn === undefined) {
-                        let confirmbtn = self.data('confirmbtn');
-                        if (confirmbtn !== undefined) {
-                            settings.confirmbtn = confirmbtn;
-                        }
-                    }
+                    if ((dialog === null) || (bootstrap.Modal === undefined)) {
+                        use_bs = false;
+                    } 
                 }
-    
+
                 // Find the confirmation and cancellation buttons
-                let $confirmbtn = $dialog.find(settings.confirmbtn);
-                let $cancelbtn = $dialog.find(settings.cancelbtn);
-    
-                // If we created the dialog, we'll enable to change the confirmation and cancellation texts in buttons, via data-canceltxt and data-confirmtxt attributes
-                if (options.canceltxt === undefined) {
-                    let canceltxt = self.data('canceltxt');
-                    if (canceltxt !== undefined) {
-                        settings.canceltxt = canceltxt;    
+                let confirmbtn = dialog.querySelector(settings.confirmbtn);
+                let cancelbtn = dialog.querySelector(settings.cancelbtn);
+                if (settings.confirmtxt !== null) {
+                    if (confirmbtn !== null) {
+                        confirmbtn.textContent = settings.confirmtxt;
                     }
                 }
                 if (settings.canceltxt !== null) {
-                    $cancelbtn.html(settings.canceltxt);
+                    if (cancelbtn !== null) {
+                        cancelbtn.textContent = settings.canceltxt;
+                    }
                 }
 
-                if (options.confirmtxt === undefined) {
-                    let confirmtxt = self.data('confirmtxt');
-                    if (confirmtxt !== undefined) {
-                        settings.confirmtxt = confirmtxt;
+                // If there is a text target and a text, put it there
+                if ((settings.confirm !== null) && (settings.texttarget !== null)) {
+                    let texttarget = dialog.querySelector(settings.texttarget);
+                    if (texttarget !== null) {
+                        texttarget.textContent = settings.confirm;
                     }
                 }
-                if (settings.confirmtxt !== null) {
-                    $confirmbtn.html(settings.confirmtxt);
-                }
-    
-                // We'll get the text from the button that was clicked, and we'll use it to set the text of the confirmation button, via confirm attribute
-                if (options.confirm === undefined) {
-                    let text = self.attr("confirm");
-                    if (text !== undefined) {
-                        settings.confirm = text;
-                    }    
-                }
-                if ((settings.confirm !== undefined) && (settings.confirm !== null)) {
-                    if (options.texttarget === undefined) {
-                        let text_target = self.data("texttarget");
-                        if (text_target !== undefined) {
-                            settings.texttarget = text_target
-                        }
-                    }
-                    $dialog.find(settings.texttarget).text(settings.confirm);
-                }
-    
+
                 // If the dialog was created by this function, we'll add it to the body to be able to use it (we'll dispose it later)
                 if (dialog_created) {
-                    $dialog.appendTo('body');
+                    document.body.appendChild(dialog);
                 }
-    
-                // Now we create a promise that will be resolved when the dialog is closed or any of the buttons is clicked
-                let p = new Promise(function(resolve, reject){
-                    let confirmed = false;
-    
-                    // Handlers for the events (although easy they are separated because we want to be able to remove the handlers)
-                    function dialog_hidden(e) {
-                        if (confirmed) {
-                            resolve();
+
+                // If no bootstrap support, we'll fallback to the legacy "confirm" function
+                if (! use_bs) {
+                    if (window.confirm(settings.confirm) === true) {
+                        // If the user clicked on the confirmation button, we'll execute the onclick event
+                        /*
+                        el._confirmation_no++;
+                        el.dispatchEvent(new Event(e.type, e));
+                        */
+                        // Continue with the action, by simulating the common click action
+                        el._confirmation_no++;
+
+                        if (el._confirmation_no >= el._confirmations.length) {
+                            if (el.click !== undefined) {
+                                el.click();
+                            } else {
+                                el.dispatchEvent(new Event(e.type, e));
+                            }
                         } else {
-                            reject();
+                            el.dispatchEvent(new Event(e.type, e));
+                        }
+                    } else {
+                        el._confirmation_no = 0;
+                    }
+                } else {
+
+                    // Otherwise, let's use boostrap's modal dialogs
+                    let modal = new bootstrap.Modal(dialog);
+
+                    // Now we create a promise that will be resolved when the dialog is closed or any of the buttons is clicked
+                    new Promise(function(resolve, reject){
+                        let confirmed = false;
+
+                        // Handlers for the events (although easy they are separated because we want to be able to remove the handlers)
+                        function dialog_hidden(e) {
+                            // Remove the handlers, just in case that the dialog is provided by the user
+                            if (confirmbtn !== null) {
+                                confirmbtn.removeEventListener('click', confirm_fnc);
+                            }
+                            if (cancelbtn !== null) {
+                                cancelbtn.removeEventListener('click', cancel_fnc);
+                            }
+                                
+                            dialog.removeEventListener('hidden.bs.modal', dialog_hidden);
+
+                            // If the dialog was created by this function, we'll dispose it
+                            if (dialog_created) {
+                                dialog.remove();
+                            } 
+
+                            if (confirmed) {
+                                resolve();
+                            } else {
+                                reject();
+                            }
+                        }
+                        function confirm_fnc(e){
+                            confirmed = true;
+                            modal.hide();
+                        }
+                        function cancel_fnc(e) {
+                            modal.hide();
                         }
 
-                        // Remove the handlers, just in case that the dialog is provided by the user
-                        $confirmbtn.off('click', confirm_fnc);
-                        $cancelbtn.off('click', cancel_fnc);
-                        $dialog.off('hidden.bs.modal', dialog_hidden);
+                        // We'll resolver or reject the promise after the dialog is closed, so that it offers a better user experience
+                        dialog.addEventListener('hidden.bs.modal', dialog_hidden, true);
 
-                        // If the dialog was created by this function, we'll dispose it
-                        if (dialog_created) {
-                            $dialog.remove();
-                        } 
-                    }
-                    function confirm_fnc(e){
-                        confirmed = true;
-                        $dialog.modal('hide');
-                    }
-                    function cancel_fnc(e) {
-                        $dialog.modal('hide');
-                    }
+                        // If the user clicks on either confirm or cancel button, the dialog is closed to proceed with the promise
+                        if (confirmbtn !== null) {
+                            confirmbtn.addEventListener('click', confirm_fnc, true);
+                        }
+                        if (cancelbtn !== null) {
+                            cancelbtn.addEventListener('click', cancel_fnc, true);
+                        }
 
-                    // We'll resolver or reject the promise after the dialog is closed, so that it offers a better user experience
-                    $dialog.on('hidden.bs.modal', dialog_hidden);
-    
-                    // If the user clicks on either confirm or cancel button, the dialog is closed to proceed with the promise
-                    $confirmbtn.on('click', confirm_fnc);
-                    $cancelbtn.on('click', cancel_fnc);
+                        // Now show the dialog
+                        modal.show();
+                    }).then(function() {
+                        // Continue with the action, by simulating the common click action
+                        el._confirmation_no++;
 
-                    // Now show the dialog
-                    $dialog.modal('show');
+                        // If it is the last confirmation, we'll execute the legacy click event (if exists; otherwise we'll dispatch an event to fire jquery events (click method already fires them))
+                        if (el._confirmation_no >= el._confirmations.length) {
+                            if (el.click !== undefined) {
+                                el.click();
+                            } else {
+                                el.dispatchEvent(new Event(e.type, e));
+                            }
+                        } else {
+                            el.dispatchEvent(new Event(e.type, e));
+                        }
+                    }).catch(function() {
+                        el._confirmation_no = 0;
+                        // User clicked cancel (handled to avoid errors in the console)
+                    });
+                }
+            }, true);
+        });
+    }
 
-                }).then(function() {
-                    // Continue with the action, by simulating the common click action (if it is a clickable element, let's use the 
-                    //  native click event, otherwise, we'll use the submit event)
-                    if (self[0].click !== undefined) {
-                        self[0]._cjqu_click_payload = 'from_modal';
-                        self[0].click();
-                    } else {
-                        self.trigger('click', ['from_modal']);
-                    }
-                }).catch(function() {
-                    // User clicked cancel (handled to avoid errors in the console)
+    function init(document) {
+
+        function initialize(el, values = {}) {
+            let data = el.dataset;
+            let options = {};
+            for (let key in defaults) {
+                if (data[key] !== undefined) {
+                    options[key] = data[key];
+                }
+                if (values[key] !== undefined) {
+                    options[key] = values[key];
+                }
+            }
+            let confirmtxt = el.getAttribute('confirm');
+            if (confirmtxt === "") {
+                confirmtxt = null;
+            }
+            if (confirmtxt !== null) {
+                options["confirm"] = confirmtxt;
+            }
+            addconfirmation(el, mergeobjects(options, values));
+        }
+
+        if (window.jQuery !== undefined) {
+            $.fn.confirmButton = function(options = {}) {
+                this.each(function() {
+                    initialize(this, options);
                 });
             }
-        })    
-    })
-}
+        }
+        document.querySelectorAll("[confirm]").forEach(function(el) {
+            initialize(el)
+        });
+    }
 
-$(function() {
-    // Add a confirmation modal to any button that has the attribute confirm (either it has content or not)
-    $('[confirm]').confirmButton();
-})
+    function config(settings) {
+        defaults = mergeobjects(defaults, settings);
+    }
+
+    exports.confirmation = {
+        addConfirmation: addconfirmation,
+        config: config
+    };
+
+    if (document.addEventListener !== undefined) {
+        document.addEventListener('DOMContentLoaded', function(e) {
+            init(document);
+        });
+    }
+})(window, document);

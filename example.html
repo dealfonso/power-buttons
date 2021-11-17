@@ -44,10 +44,10 @@ $(function() {
         <h3>Pair of buttons that have onclick property and other jquery click handlers</h3>
         <p class="small">The "confirm" attribute is set for each button, and they have click handlers and onclick handler.</p>
         <button type="button" class="second btn btn-primary" confirm="Are your sure?" onclick="alert('confirmed');">clickme</button>
-        <button type="button" class="third btn btn-secondary disabled" onclick="alert('I confirm too');">clickme too</button>
+        <button type="button" class="third btn btn-secondary disabled" confirm onclick="alert('I confirm too');">clickme too</button>
         <code>
 <button type="button" class="second btn btn-primary" confirm="Are your sure?" onclick="alert('confirmed');">clickme</button>
-<button type="button" class="third btn btn-secondary disabled" onclick="alert('I confirm too');">clickme too</button>
+<button type="button" class="third btn btn-secondary disabled" confirm onclick="alert('I confirm too');">clickme too</button>
 <script>
     $(function() {
         $('button.second').click(function() {
