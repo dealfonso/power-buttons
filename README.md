@@ -4,7 +4,7 @@ This is a plugin for [jQuery](https://jquery.com) that depends on [Bootstrap](ht
 The plugin makes that any button show a confirmation modal dialog prior to executing the function that it should execute. It is useful for (e.g.) confirm submitting a dialog or deleting entries in a database.
 
 The basic syntax to use this plugin is to include a tag such as the next one:
-```html
+```html
 <button confirm="Are you sure?">clickme</button>
 ```
 
@@ -99,7 +99,6 @@ Once the button is clicked, a confirmation dialog will be shown. If the user cli
 
 [See at codepen](https://codepen.io/dealfonso/pen/RwZBmBy)
 
-
 ### A button that submits a form
 
 ```html
@@ -177,28 +176,94 @@ Each button can be configured according to its specific needs. If using the prog
 
 ```javascript
 options = {
-    confirm: null,
-    texttarget: 'p.confirm-text',
-    confirmbtn: 'button.confirm',
-    cancelbtn: 'button.cancel',
+    confirm: "Please confirm this action",
+    texttarget: "p.message",
+    titletarget: ".modal-title h5",
+    titletxt: "The action requires confirmation",
+    confirmbtn: "button.confirm",
+    cancelbtn: "button.cancel",
     dialog: null,
+    canceltxt: null,
     confirmtxt: null,
-    canceltxt: null
+    dialogfnc: _default_create_dialog
 };
 ```
 
-In the declarative way, there exist the corresponding options (`confirm`, `data-texttarget`, `data-confirmbtn`, `data-cancelbtn`, `data-dialog`, `data-confirmtxt` and `data-canceltxt`). These attributes may be set in the html5 tags as in the example:
+In the declarative way, there exist the corresponding options (`confirm`, `data-texttarget`, `data-titletarget`, `data-titletxt`, `data-confirmbtn`, `data-cancelbtn`, `data-dialog`, `data-confirmtxt` and `data-canceltxt`). These attributes may be set in the html5 tags as in the example:
 
 ```html
 <button confirm="Are you sure?" data-dialog="#myconfirmdlg" data-confirmbtn="button.save" type="submit">Send</button>
 ```
 
 The function for each field is the next:
-- **confirm (data-confirm)**: is the message to show in the modal dialog. This text will be placed as _raw html_ in the component obtained by means of _texttarget_.
+- **confirm (confirm)**: is the message to show in the modal dialog. This text will be placed as _raw html_ in the component obtained by means of _texttarget_.
 - **texttarget (data-texttarget):** is the selector for the placeholder for the message in the dialog. The content of _confirm_ will be placed as raw html in the component.
+- **titletxt (data-titletxt)**: is the message to show in the title of the confirmation modal dialog. This text will be placed in the component obtained by means of _titletarget_.
+- **titletarget (data-titletarget):** is the selector for the placeholder for the title of the dialog. The content of _titletxt_ will be placed in the component.
 - **confirmbtn (data-confirmbtn):** is the jQuery selector to obtain the confirmation button (or element).
 - **cancelbtn (data-cancelbtn):** is the jQuery selector to obtain the cancel button (or element).
 - **dialog (data-dialog):** is the jQuery selector to obtain the custom modal dialog to show (if not found, a generic one will be created).
 - **confirmtxt (data-confirmtxt):** if provided, this text will be set inside the confirmation button as raw html (this is for internationalization purposes).
 - **canceltxt (data-canceltxt):** if provided, this text will be set inside the cancel button as raw html (this is for internationalization purposes).
+- **dialogfnc (this is attribute cannot be set in the declarative way):** this is the function used to create the default dialog used. It returns an object of type HTML Element that will be shown using the Bootstrap modal class.
 
+### Configuration
+
+The default values for the configuration can be modified globally. For example, for internationalization purposes, or to provide a different default function to create the confirmation dialog.
+
+#### Internationalization
+
+The internationalization for this library can be made by means of the global configuration of the library. Once configured in this way, each text that may appear using `jsconfirm-buttons` will use these default values.
+
+**Example of changing language**
+
+```javascript
+<head>
+(...)
+<script>
+function spanish() {
+    // Modal dialog texts in Spanish
+    window.confirmation.config({
+        titletxt: "Esta acción requiere confirmación",
+        confirmtxt: "Confirmar",
+        canceltxt: "Cancelar",
+        confirm: "Por favor confirme la acción"
+    });
+}
+function english() {
+    // Modal dialog texts in English
+    window.confirmation.config({
+        titletxt: "This action requires confirmation",
+        confirmtxt: "Confirm",
+        canceltxt: "Cancel",
+        confirm: "Please confirm your action"
+    });
+}
+function french() {
+    // Modal dialog texts in French
+    window.confirmation.config({
+        titletxt: "Cette action nécessite votre confirmation",
+        confirmtxt: "Confirmer",
+        canceltxt: "Annuler",
+        confirm: "Veuillez confirmer votre action"
+    });
+}
+</script>
+</head>
+```
+
+And then, in the html body...
+
+```html
+<a href="#" onclick="english();return false;" confirm="Want to set the texts of the library to english?">english</a> |
+<a href="#" onclick="spanish();return false;" confirm="¿Quiere utilizar los textos de la librería en español?">spanish</a> |
+<a href="#" onclick="french();return false;" confirm="Vous souhaitez utiliser les textes de la librairie en français?">french</a>
+```
+
+Anyway, the internationalization can also be made in a declarative way, by setting each text in the dialog translated to the appropriate language:
+
+```html
+<button type="button" class="btn btn-primary" onclick="alert('confirmado');" confirm="Por favor confirme su acción" data-confirmtxt="Confirmar" data-canceltxt="Cancelar" data-titletxt="Esta acción requiere confirmación">púlsame</button>
+<button type="button" class="btn btn-primary" onclick="alert('confirm');" confirm="Please confirm your action" data-confirmtxt="Confirm" data-canceltxt="Cancel" data-titletxt="This action requires confirmation">press me</button>
+<button type="button" class="btn btn-primary" onclick="alert('confirmer');" confirm="Veuillez confirmer votre action" data-confirmtxt="Confirmer" data-canceltxt="Annuler" data-titletxt="Cette action nécessite votre confirmation">presse moi</button>
+```
