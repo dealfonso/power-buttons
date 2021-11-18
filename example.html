@@ -4,6 +4,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.min.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icon-css@4.1.5/css/flag-icons.css">
         <script src="confirmbutton.js"></script>
         <style type="text/css">
         li[confirm] {
@@ -17,6 +18,9 @@
             border: 1px solid #ccc;
             color: #333;
             overflow: auto;
+        }
+        i.flag-icon {
+            border-radius: 50%;
         }
         </style>
         <script>
@@ -120,7 +124,7 @@ $(function() {
             <div class="modal-dialog">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title">Modal title</h5>
+                  <h5 class="modal-title">Confirm saving</h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -135,14 +139,14 @@ $(function() {
         </div>
         <form>
             <input type="text" name="q">
-            <button confirm data-dialog="#myconfirmdlg" data-confirmbtn="button.save" type="submit">Send</button>
+            <button class="btn btn-success" confirm data-dialog="#myconfirmdlg" data-confirmbtn="button.save" type="submit">Send</button>
         </form>
         <code>
 <div class="modal" tabindex="-1" id="myconfirmdlg" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title">Modal title</h5>
+            <h5 class="modal-title">Confirm saving</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -157,25 +161,25 @@ $(function() {
 </div>
 <form>
     <input type="text" name="q">
-    <button confirm data-dialog="#myconfirmdlg" data-confirmbtn="button.save" type="submit">Send</button>
+    <button class="btn btn-success" confirm data-dialog="#myconfirmdlg" data-confirmbtn="button.save" type="submit">Send</button>
 </form>
         </code>
         <h3>Internationalization (locally, per element) using declarative mechanism</h3>
         <p class="small">Each of the texts in the dialog is customized for each language.</p>
-        <button type="button" class="btn btn-primary" onclick="alert('confirmado');" confirm="Por favor confirme su acción" data-confirmtxt="Confirmar" data-canceltxt="Cancelar" data-titletxt="Esta acción requiere confirmación">púlsame</button>
-        <button type="button" class="btn btn-primary" onclick="alert('confirm');" confirm="Please confirm your action" data-confirmtxt="Confirm" data-canceltxt="Cancel" data-titletxt="This action requires confirmation">press me</button>
-        <button type="button" class="btn btn-primary" onclick="alert('confirmer');" confirm="Veuillez confirmer votre action" data-confirmtxt="Confirmer" data-canceltxt="Annuler" data-titletxt="Cette action nécessite votre confirmation">presse moi</button>
+        <button type="button" class="btn btn-primary" onclick="alert('confirm');" confirm="Please confirm your action" data-confirmtxt="Confirm" data-canceltxt="Cancel" data-titletxt="This action requires confirmation">press me <i class="flag-icon flag-icon-squared flag-icon-gb"></i></button>
+        <button type="button" class="btn btn-primary" onclick="alert('confirmado');" confirm="Por favor confirme su acción" data-confirmtxt="Confirmar" data-canceltxt="Cancelar" data-titletxt="Esta acción requiere confirmación">púlsame <i class="flag-icon flag-icon-squared flag-icon-es"></i></button>
+        <button type="button" class="btn btn-primary" onclick="alert('confirmer');" confirm="Veuillez confirmer votre action" data-confirmtxt="Confirmer" data-canceltxt="Annuler" data-titletxt="Cette action nécessite votre confirmation">presse moi <i class="flag-icon flag-icon-squared flag-icon-fr"></i></button>
         <code>
-<button type="button" class="btn btn-primary" onclick="alert('confirmado');" confirm="Por favor confirme su acción" data-confirmtxt="Confirmar" data-canceltxt="Cancelar" data-titletxt="Esta acción requiere confirmación">púlsame</button>
-<button type="button" class="btn btn-primary" onclick="alert('confirm');" confirm="Please confirm your action" data-confirmtxt="Confirm" data-canceltxt="Cancel" data-titletxt="This action requires confirmation">press me</button>
-<button type="button" class="btn btn-primary" onclick="alert('confirmer');" confirm="Veuillez confirmer votre action" data-confirmtxt="Confirmer" data-canceltxt="Annuler" data-titletxt="Cette action nécessite votre confirmation">presse moi</button>
+<button type="button" class="btn btn-primary" onclick="alert('confirm');" confirm="Please confirm your action" data-confirmtxt="Confirm" data-canceltxt="Cancel" data-titletxt="This action requires confirmation">press me <i class="flag-icon flag-icon-squared flag-icon-gb"></i></button>
+<button type="button" class="btn btn-primary" onclick="alert('confirmado');" confirm="Por favor confirme su acción" data-confirmtxt="Confirmar" data-canceltxt="Cancelar" data-titletxt="Esta acción requiere confirmación">púlsame <i class="flag-icon flag-icon-squared flag-icon-es"></i></button>
+<button type="button" class="btn btn-primary" onclick="alert('confirmer');" confirm="Veuillez confirmer votre action" data-confirmtxt="Confirmer" data-canceltxt="Annuler" data-titletxt="Cette action nécessite votre confirmation">presse moi <i class="flag-icon flag-icon-squared flag-icon-fr"></i></button>
         </code>
         </pre>
         <h3>Internationalization (globally) using library configuration</h3>
         <p class="small">Each link calls to a function that will configure the library globally</p>
-        <a href="#" onclick="english();return false;" confirm="Want to set the texts of the library to english?">english</a> |
-        <a href="#" onclick="spanish();return false;" confirm="¿Quiere utilizar los textos de la librería en español?">spanish</a> |
-        <a href="#" onclick="french();return false;" confirm="Vous souhaitez utiliser les textes de la librairie en français?">french</a>
+        <a href="#" onclick="english();return false;" confirm="Want to set the texts of the library to english?"><i class="flag-icon flag-icon-squared flag-icon-gb"></i></a> |
+        <a href="#" onclick="spanish();return false;" confirm="¿Quiere utilizar los textos de la librería en español?"><i class="flag-icon flag-icon-squared flag-icon-es"></i></a> |
+        <a href="#" onclick="french();return false;" confirm="Vous souhaitez utiliser les textes de la librairie en français?"><i class="flag-icon flag-icon-squared flag-icon-fr"></i></a>
         <code>
 <script>
 function spanish() {
@@ -206,9 +210,9 @@ function french() {
     });
 }
 </script>
-<a href="#" onclick="english();return false;" confirm="Want to set the texts of the library to english?">english</a> |
-<a href="#" onclick="spanish();return false;" confirm="¿Quiere utilizar los textos de la librería en español?">spanish</a> |
-<a href="#" onclick="french();return false;" confirm="Vous souhaitez utiliser les textes de la librairie en français?">french</a>
+<a href="#" onclick="english();return false;" confirm="Want to set the texts of the library to english?"><i class="flag-icon flag-icon-gb"></i></a> |
+<a href="#" onclick="spanish();return false;" confirm="¿Quiere utilizar los textos de la librería en español?"><i class="flag-icon flag-icon-es"></i></a> |
+<a href="#" onclick="french();return false;" confirm="Vous souhaitez utiliser les textes de la librairie en français?"><i class="flag-icon flag-icon-fr"></i></a>
 
         </code>
         <h3>Confirmation in a link</h3>
