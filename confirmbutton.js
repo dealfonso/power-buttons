@@ -1,28 +1,20 @@
+/**
+Copyright 2021 Carlos de Alfonso (https://github.com/dealfonso)
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 (function(exports, document) {
-
-    /*
-    function confirmButtons(fn, context) {
-
-        if (typeof fn != "function") {
-            return;
-        }
-
-        function onReady(event) {
-            d.removeEventListener("DOMContentLoaded", onReady);
-            fn.call(context || exports, event);
-        }
-
-        function onReadyIe(event) {
-            if (d.readyState === "complete") {
-                d.detachEvent("onreadystatechange", onReadyIe);
-                fn.call(context || exports, event);
-            }
-        }
-
-        d.addEventListener && d.addEventListener("DOMContentLoaded", onReady) ||
-        d.attachEvent      && d.attachEvent("onreadystatechange", onReadyIe);
-    }
-    */
 
     function _default_create_dialog() {
         /**
@@ -121,6 +113,8 @@
     defaults = {
         confirm: "Please confirm this action",
         texttarget: "p.message",
+        titletarget: ".modal-title h5",
+        titletxt: "The action requires confirmation",
         confirmbtn: "button.confirm",
         cancelbtn: "button.cancel",
         dialog: null,
@@ -183,9 +177,10 @@
 
                     // If there was a previous onclick event, we'll execute it
                     if (typeof(this._back_onclick) === 'function') {
-                        this._back_onclick();
+                        if (!this._back_onclick()) {
+                            e.preventDefault();
+                        }
                     }
-
                     return;
                 }
 
@@ -236,6 +231,14 @@
                     let texttarget = dialog.querySelector(settings.texttarget);
                     if (texttarget !== null) {
                         texttarget.textContent = settings.confirm;
+                    }
+                }
+
+                // If there is a title target and a title text, put it there
+                if ((settings.titletxt !== null) && (settings.titletarget !== null)) {
+                    let titletarget = dialog.querySelector(settings.titletarget);
+                    if (titletarget !== null) {
+                        titletarget.textContent = settings.titletxt;
                     }
                 }
 
