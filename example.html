@@ -19,6 +19,35 @@
             overflow: auto;
         }
         </style>
+        <script>
+        function spanish() {
+            // Modal dialog texts in Spanish
+            window.confirmation.config({
+                titletxt: "Esta acción requiere confirmación",
+                confirmtxt: "Confirmar",
+                canceltxt: "Cancelar",
+                confirm: "Por favor confirme la acción"
+            });
+        }
+        function english() {
+            // Modal dialog texts in English
+            window.confirmation.config({
+                titletxt: "This action requires confirmation",
+                confirmtxt: "Confirm",
+                canceltxt: "Cancel",
+                confirm: "Please confirm your action"
+            });
+        }
+        function french() {
+            // Modal dialog texts in French
+            window.confirmation.config({
+                titletxt: "Cette action nécessite votre confirmation",
+                confirmtxt: "Confirmer",
+                canceltxt: "Annuler",
+                confirm: "Veuillez confirmer votre action"
+            });
+        }
+        </script>
     </head>
     <body class="w-75 mx-auto py-5">
         <h3>Dummy button that asks for confirmation but does nothing.</h3>
@@ -33,8 +62,20 @@
         <code>
 <button type="button" class="first btn btn-primary" onclick="alert('confirmed');">clickme</button>
 <script>
+    window.confirmation.addConfirmation(document.querySelector('button.first'), {
+        confirm: "Are you really sure?"
+    })
+</script>
+        </code>
+        </pre>
+        <h3>Simple button that shows an alert upon confirming (using jQuery)</h3>
+        <p class="small">The "confirm" attribute is set, and a click handler is also set.</p>
+        <button type="button" class="second btn btn-primary" onclick="alert('confirmed');">clickme</button>
+        <code>
+<button type="button" class="second btn btn-primary" onclick="alert('confirmed');">clickme</button>
+<script>
 $(function() {
-    $('button.first').confirmButton({
+    $('button.second').confirmButton({
         confirm: "Are you really sure?"
     });
 });
@@ -119,13 +160,64 @@ $(function() {
     <button confirm data-dialog="#myconfirmdlg" data-confirmbtn="button.save" type="submit">Send</button>
 </form>
         </code>
-        <h3>Using in a link</h3>
+        <h3>Internationalization (locally, per element) using declarative mechanism</h3>
+        <p class="small">Each of the texts in the dialog is customized for each language.</p>
+        <button type="button" class="btn btn-primary" onclick="alert('confirmado');" confirm="Por favor confirme su acción" data-confirmtxt="Confirmar" data-canceltxt="Cancelar" data-titletxt="Esta acción requiere confirmación">púlsame</button>
+        <button type="button" class="btn btn-primary" onclick="alert('confirm');" confirm="Please confirm your action" data-confirmtxt="Confirm" data-canceltxt="Cancel" data-titletxt="This action requires confirmation">press me</button>
+        <button type="button" class="btn btn-primary" onclick="alert('confirmer');" confirm="Veuillez confirmer votre action" data-confirmtxt="Confirmer" data-canceltxt="Annuler" data-titletxt="Cette action nécessite votre confirmation">presse moi</button>
+        <code>
+<button type="button" class="btn btn-primary" onclick="alert('confirmado');" confirm="Por favor confirme su acción" data-confirmtxt="Confirmar" data-canceltxt="Cancelar" data-titletxt="Esta acción requiere confirmación">púlsame</button>
+<button type="button" class="btn btn-primary" onclick="alert('confirm');" confirm="Please confirm your action" data-confirmtxt="Confirm" data-canceltxt="Cancel" data-titletxt="This action requires confirmation">press me</button>
+<button type="button" class="btn btn-primary" onclick="alert('confirmer');" confirm="Veuillez confirmer votre action" data-confirmtxt="Confirmer" data-canceltxt="Annuler" data-titletxt="Cette action nécessite votre confirmation">presse moi</button>
+        </code>
+        </pre>
+        <h3>Internationalization (globally) using library configuration</h3>
+        <p class="small">Each link calls to a function that will configure the library globally</p>
+        <a href="#" onclick="english();return false;" confirm="Want to set the texts of the library to english?">english</a> |
+        <a href="#" onclick="spanish();return false;" confirm="¿Quiere utilizar los textos de la librería en español?">spanish</a> |
+        <a href="#" onclick="french();return false;" confirm="Vous souhaitez utiliser les textes de la librairie en français?">french</a>
+        <code>
+<script>
+function spanish() {
+    // Modal dialog texts in Spanish
+    window.confirmation.config({
+        titletxt: "Esta acción requiere confirmación",
+        confirmtxt: "Confirmar",
+        canceltxt: "Cancelar",
+        confirm: "Por favor confirme la acción"
+    });
+}
+function english() {
+    // Modal dialog texts in English
+    window.confirmation.config({
+        titletxt: "This action requires confirmation",
+        confirmtxt: "Confirm",
+        canceltxt: "Cancel",
+        confirm: "Please confirm your action"
+    });
+}
+function french() {
+    // Modal dialog texts in French
+    window.confirmation.config({
+        titletxt: "Cette action nécessite votre confirmation",
+        confirmtxt: "Confirmer",
+        canceltxt: "Annuler",
+        confirm: "Veuillez confirmer votre action"
+    });
+}
+</script>
+<a href="#" onclick="english();return false;" confirm="Want to set the texts of the library to english?">english</a> |
+<a href="#" onclick="spanish();return false;" confirm="¿Quiere utilizar los textos de la librería en español?">spanish</a> |
+<a href="#" onclick="french();return false;" confirm="Vous souhaitez utiliser les textes de la librairie en français?">french</a>
+
+        </code>
+        <h3>Confirmation in a link</h3>
         <p class="small">The "confirm" attribute is set to the &lt;a&gt; tag</p>
         <a href="https://www.google.es" confirm="Want to go to google?">clickme</a>
         <code>
 <a href="https://www.google.es" confirm="Want to go to google?">clickme</a>
         </code>
-        <h3>Using in a list</h3>
+        <h3>Confirmation of elements in a list</h3>
         <p class="small">The "confirm" attribute is set to the different &lt;li&gt; items.</p>
         <ul>
             <li confirm="Confirm item 1">item 1</li>
@@ -139,7 +231,7 @@ $(function() {
     <li confirm="Confirm item 3">item 3</li>
 </ul>
         </code>
-        <h3>Using in an image</h3>
+        <h3>Confirmation of an image</h3>
         <p class="small">The "confirm" attribute is set to the svg image.</p>
         <svg confirm="thank you for clicking!" width="250" height="85" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
             <g class="layer">
