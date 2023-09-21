@@ -34,14 +34,17 @@ class ActionFormset extends Action {
         }
 
         // Just in case we have any field in the default values, we merge them with the extracted ones
-        options.fields = mergeobjectsr(options.fields, fields);
+        if (options.fields === undefined) {
+            options.fields = {};
+        }
+        Object.assign(options.fields, fields);
 
         return options;
     }
 
     static execute(options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
-        let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsFormset, options);
+        let settings = PowerButtons.getActionSettings(this, options);
 
         // Get the form to set using the provided selector (or name)
         let formToSet = searchForm(settings.form);

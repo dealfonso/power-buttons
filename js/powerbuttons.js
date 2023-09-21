@@ -7,15 +7,40 @@ class PowerButtons {
      * @param action, the action to be registered
      */
     static registerAction(action) {
-        console.debug(`Registering action ${action.NAME}`);
+        console.debug(`Registering action ${action.NAME.toLowerCase()}`);
 
-        this.actionsRegistered[action.NAME] = action;
+        this.actionsRegistered[action.NAME.toLowerCase()] = action;
 
-        let actionConfig = {};
-        actionConfig[`defaults${action.NAME}`] = action.DEFAULTS;
-        window.powerButtons = mergeobjectsr(window.powerButtons, {
-            config: actionConfig
-        });
+        if (window.powerButtons === undefined) {
+            window.powerButtons = {};
+        }
+        if (window.powerButtons.defaults === undefined) {
+            window.powerButtons.defaults = {};
+        }
+        window.powerButtons.defaults[action.NAME.toLowerCase()] = Object.assign({}, action.DEFAULTS);
+    }
+
+    /**
+     * Retrieves the options for an action, by merging the defaults of the action with the defaults of the window and the options
+     * @param {*} action, the action to retrieve the defaults for
+     * @param {*} options, the options to merge with the defaults
+     * @returns an object that contains the options for the action, merged with the defaults for the action and the default
+     *   options for the window
+     */
+    static getActionSettings(action, options) {
+        if (this.actionsRegistered[action.NAME.toLowerCase()] === undefined) {
+            console.error(`The action ${action.NAME} is not registered`);
+            return {};
+        }
+
+        let defaultsWindow = {};
+
+        if ((window.powerButtons !== undefined) && (window.powerButtons.defaults !== undefined) && (window.powerButtons.defaults[action.NAME.toLowerCase()] !== undefined)) {
+            defaultsWindow = window.powerButtons.defaults[action.NAME.toLowerCase()];
+        }
+
+        // Merge the defaults of the action with the defaults of the window and the options
+        return Object.assign({}, action.DEFAULTS, defaultsWindow, options);
     }
 
     /**
@@ -163,12 +188,12 @@ class PowerButtons {
     }
 }
 
-function init(document) {
+function init() {
     PowerButtons.initializeAll();
 }
 
 if (document.addEventListener !== undefined) {
     document.addEventListener('DOMContentLoaded', function(e) {
-        init(document);
+        init();
     });
 }

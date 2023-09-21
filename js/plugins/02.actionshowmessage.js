@@ -21,7 +21,7 @@ class ActionShowMessage extends Action {
 
     static execute(options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
-        let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsShowMessage, options);
+        let settings = PowerButtons.getActionSettings(this, options);
 
         // We'll create the dialog
         let dialog = Dialog.create({

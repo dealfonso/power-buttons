@@ -1,7 +1,7 @@
 class Action {
     static NAME = null;
 
-    static register(exports) {
+    static register() {
         PowerButtons.registerAction(this);
     }
 
@@ -16,16 +16,18 @@ class Action {
      *     For example, if the prefix is "verify" and the option is "title", the data attribute will be 
      *     data-verify-title and the value will be set to the option "title" in the extracted options object.
      * 
-     *     It is important to note that the values that will be extracted from the data attributes will be
-     *     those that are defined in the DEFAULTS of the class. If the data attribute is not defined in the
+     *     It is important to note that the values that will be extracted from the data attributes, will be
+     *     those keys that are defined in the DEFAULTS of the class. If the data attribute is not defined in the
      *     DEFAULTS, it will be ignored.
      * 
      *   - The map is used to map the data attribute names to the options names. 
      * 
      *     Reasoning: if we wanted an option named "verify" and we used the prefix "verify", the data attribute
-     *       would be data-verify-verify, which is not very nice. So, we can use the map to map the data attribute
-     *       names to the options names. If the map is { verify: "" }, the data attribute be data-verify will be
-     *       used to set the option "verify" in the extracted options object.
+     *       would be data-verify-verify, which is not very nice looking. So, we can use the map to map the data 
+     *       key to the expected data attribute name. If the map is { 'verify': 'verify' }, to fill the key 'verify'
+     *       in the resulting options object, the data attribute will be data-verify, instead of data-verify-verify.
+     *       This also works for renaming the data attribute, so if we set a map { 'form': 'formset' }, to fill the 
+     *       key 'form' in the options object, the data attribute to use will be data-formset.
      * 
      * @param {*} el 
      * @param {*} prefix 
@@ -43,7 +45,19 @@ class Action {
             map[prefix] = prefix;
         }
 
-        let options = extractValues(this.DEFAULTS, el.dataset, prefix, map);
+        // Now walk the dataset and extract the options
+        let options = {};
+        for (let key in this.DEFAULTS) {
+            let targetKey = key;
+            if (map[targetKey] !== undefined) {
+                targetKey = map[targetKey];
+            } else {
+                targetKey = prefix + CamelToCamel(targetKey);
+            }
+            if (el.dataset[targetKey] !== undefined) {
+                options[key] = el.dataset[targetKey];
+            }
+        }
         return options;
     }
 
@@ -65,31 +79,28 @@ class Action {
      * @param {*} map, a map of the data attribute names to the options names; if not provided, it will be assumed 
      *                 that the data attribute names are the same as the options names using the camelCase convention
      */
-    static initialize(el, values = {}, prefix = null, map = null) {
-        let options = this.extractOptions(el, prefix, map);
-
-        options.type = this.NAME;
-
-        PowerButtons.addAction(el, Object.assign({},
-                                options, 
-                                extractValues(this.DEFAULTS, values)));
+    static initialize(el, values = {}) {
+        PowerButtons.addAction(el, Object.assign({type: this.NAME.toLowerCase()},
+                                values));
     }
 
     /**
-     * Searches for any element with a data-{prefix} attribute and initializes it using the `initialize` method.
-     *   (see `initialize` for more info).
-     * @param {*} values, the specific values to use for the initialization appart from the default ones
-     * @param {*} prefix, the prefix to use for the data attribute (defaults to the name of the action in lowercase)
-     * @param {*} map, a map of the data attribute names to the options names; if not provided, it will be assumed 
-     *                 that the data attribute names are the same as the options names using the camelCase convention
+     * Searches for any element with a data-{name} attribute, extract the values from the dataset (if any) and initializes 
+     *  it using the `initialize` method. (see `initialize` for more info).
+     * @param {*} values, the specific values to use for the initialization appart from the default ones; if not provided,
+     *                   the values will be extracted from the data attributes
      */
-    static initializeAll(values = {}, prefix = null, map = null) {
-        if (prefix === null) {
-            prefix = this.NAME.toLowerCase();
-        }
+    static initializeAll(values = null) {
+        let prefix = this.NAME.toLowerCase();
 
         for (let el of document.querySelectorAll(`[data-${prefix}`)) {
-            this.initialize(el, values, prefix, map);
+            let options = null;
+            if (values === null) {
+                options = this.extractOptions(el, prefix);
+            } else {
+                options = Object.assign({}, values);
+            }
+            this.initialize(el, options);
         }        
     }
 

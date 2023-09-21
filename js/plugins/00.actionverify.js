@@ -2,9 +2,9 @@ class ActionVerify extends Action {
     static NAME = "Verify";
 
     static DEFAULTS = {
-        // The function to call to verify the action. It must return a true or false value
+        // The function to call to verify the action. It must return a true or false value. If it is an string, it will be evaluated as javascript, using _eval_
         verify: null,
-        // The form to bind the verification to. If null, the verification will be bound to the document
+        // The form to bind the verification to. If it is a string, it will be interpreted as a selector (it is not verified if it is a form or any other object). If null, the verification will be bound to the document
         form: null,
         // The content of the message to show to the user if verified to true (it can be either plain text or a HTML fragment)
         verified: null,
@@ -32,7 +32,7 @@ class ActionVerify extends Action {
 
     static execute(options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
-        let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsVerify, options);
+        let settings = PowerButtons.getActionSettings(this, options);
 
         let result = null;
         let bindObject = searchForm(settings.form);

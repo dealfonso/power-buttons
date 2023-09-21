@@ -18,6 +18,15 @@ class ActionConfirm extends Action {
         escapeKey: true        
     };
 
+    static extractOptions(el, prefix = null, map = null) {
+        let options = super.extractOptions(el, prefix, map);
+        if (options.confirm.trim() == "") {
+            delete options.confirm;
+        }
+        return options;
+    }
+
+
     /**
      * Executes the action
      * @param {*} options, the options to use for the execution of the action (those extracted from the data attributes and the
@@ -28,7 +37,7 @@ class ActionConfirm extends Action {
      */
     static execute(options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
-        let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsConfirm, options);
+        let settings = PowerButtons.getActionSettings(this, options);
 
         // We'll create the dialog
         let dialog = Dialog.create({

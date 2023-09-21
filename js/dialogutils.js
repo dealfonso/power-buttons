@@ -56,10 +56,12 @@ function loadingDialog(message, customContent = null, canCancel = null) {
     return dialog;
 }
 
-window.powerButtons = mergeobjectsr(window.powerButtons, {
-    utils: {
-        confirmDialog: confirmDialog,
-        alertDialog: alertDialog,
-        loadingDialog: loadingDialog
-    }
+if (window.powerButtons.utils === undefined) {
+    window.powerButtons.utils = {};
+}
+
+Object.assign(window.powerButtons.utils, {
+    confirmDialog: confirmDialog,
+    alertDialog: alertDialog,
+    loadingDialog: loadingDialog
 });
