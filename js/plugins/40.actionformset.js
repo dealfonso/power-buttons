@@ -9,9 +9,6 @@ class ActionFormset extends Action {
     }
 
     static extractOptions(el, prefix = null, map = null) {
-        if (prefix === null) {
-            prefix = this.NAME.toLowerCase();
-        }
 
         let options = super.extractOptions(el, prefix, { form: "formset" });
 
