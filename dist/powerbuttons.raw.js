@@ -1,140 +1,48 @@
 'use strict';
-window.powerButtons = {
-    version: '0.1.0',
+
+// We'll create a namespace for the plugin, that will contain the plugin itself
+window.powerButtons = function(pluginName, els = [], options = {}) {
+    let elements = els;
+
+    if (typeof(elements) === "string") {
+        elements = document.querySelectorAll(elements);
+    } else {
+        if (elements.length === undefined) {
+            elements = [ elements ];
+        }
+    }
+    let pluginToApply = null;
+    for (let actionName in PowerButtons.actionsRegistered) {
+        if (pluginName.toLocaleLowerCase() === actionName.toLocaleLowerCase()) {
+            pluginToApply = PowerButtons.actionsRegistered[actionName];
+            break;
+        }
+    }
+    if (pluginToApply === undefined) {
+        console.error(`The action ${pluginName} is not registered`);
+    } else {
+        for (let el of elements) {
+            pluginToApply.initialize(el, options);
+        }
+    }
+    return els;
 };
-function pascalToSnake(str) { return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).replace(/^_*/,'') };
+
+window.powerButtons.version = '0.1.0dev';
+
+// Now we add the plugin to jQuery, if it has been loaded
+if (window.$ !== undefined) {
+    window.$.fn.powerButtons = function(pluginName, options = {}) {
+        window.powerButtons(pluginName, this, options);
+        return this;
+    }
+    window.$.fn.powerButtons.version = window.powerButtons.version;
+}function pascalToSnake(str) { return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).replace(/^_*/,'') };
 function pascalToKebab(str) { return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`).replace(/^-*/,''); }
 function snakeCaseToCamel(str) { return str.replace(/-([a-z])/g, g => g[1].toUpperCase()); }
 function pascalToCamel(str) { return str.charAt(0).toLowerCase() + str.slice(1); }
 function CamelToCamel(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
 function isElement(el) { return el instanceof Element || el instanceof HTMLDocument; }
-
-/**
- * Flattens several objects, returning a new object with the keys of the first object. If a property is present in multiple objects,
- * the value of the latter object will be used.
- * 
- * This is much of the case of Object.assign, but this function will not modify the first object, and will return a new object.
- *  Moreover this function only considers the keys in the first object, so if the second object has more keys, they will be ignored.
- * 
- * (*) is oriented to create a full "settings" object from the user-provided settings
- * 
- * @param {*} o1, the first object
- * @param {*} o2, the second object
- * ...
- * @returns the merged object
- */
-function flattenobjects(o1, ...objects) {
-    let result = {};
-    for (let key in o1) {
-        result[key] = o1[key];
-        for (let i = 0; i < objects.length; i++) {
-            if (objects[i][key] !== undefined) {
-                result[key] = objects[i][key];
-            }
-        }
-    }
-    return result;
-}
-
-/**
- * Merges objects recursively, returning a new object with the keys of all objects. If a property is present in multiple objects,
- *  the value of the latter object will be used.
- * @param {*} ...objects, the objects to merge
- * @returns the merged object
- */
-function mergeobjectsr(...objects) {
-    if (objects.length === 0) {
-        return {};
-    } else if (objects.length === 1) {
-        return objects[0];
-    } else {
-        let result = {};
-        let o1 = objects[0];
-        if (o1 === undefined) {
-            o1 = {};
-        }
-        let o2 = objects[1];
-        if (o2 === undefined) {
-            o2 = {};
-        }
-        if (o1 !== undefined) {
-            for (let key in o1) {
-                if (o2[key] !== undefined) {
-                    if (typeof(o1[key]) === "object" && typeof(o2[key]) === "object") {
-                        result[key] = mergeobjectsr(o1[key], o2[key]);
-                        continue;
-                    } else {
-                        result[key] = o2[key];
-                    }
-                } else {
-                    result[key] = o1[key];
-                }
-            }
-        }
-        for (let key in o2) {
-            if (o1 !== undefined) {
-                if (o1[key] === undefined) {
-                    result[key] = o2[key];
-                } else {
-                    // It has already been merged
-                }
-            }
-        }
-        if (objects.length === 2) {
-            return result;
-        } else {
-            return mergeobjectsr(result, ...objects.slice(2));
-        }
-    }
-}
-
-/**
- * Exctracts the values from an object, using the defaults as a reference. Each key in the defaults object will 
- *  be used to extract the value from the dataset of the object.
- * 
- * The values are expressed like 
- *  <div data-operation1-value1="1" data-operation1-value2="2" ...></div>
- * 
- * If we want to extract "value1" and "value2" from the dataset of the div for operation "operation1", we'll have a defaults
- *  object like this:
- *  { value1 : 0, value2 : 0 }
- * 
- * The prefix will be "operation1", that will be prepended to the key in the defaults, and so the name of the keys in the 
- *  dataset will be: operation1Value1 and operation1Value2.
- * 
- * The map is used to map the keys in the defaults object to the keys in the dataset. For example, if we want to map the
- *  key "value1" to "name", we'll have a map like this: { value1 : "name" }
- * 
- * We may also provide a set of "values" to override the values in the dataset. 
- * 
- * @param {*} defaults, the defaults object (the resulting settings will contain all the keys in this object)
- * @param {*} values, the actual values for the settings (that will override the values in the dataset)
- * @param {*} prefix, the prefix to prepend to the keys in the defaults object to get the keys in the dataset
- * @param {*} map, the map to rename the keys in the defaults object to the keys in the dataset
- * @param {*} include_defaults, if true, the resulting settings will contain all the keys in the defaults object, even if
- *                             they are not present in the dataset (they will have the value in the defaults object)
- * @returns the settings object that will contain (at least) all the keys in the defaults object with the values
- *          extracted from the dataset (or the values object, or the defaults object)
- */
-function extractValues(defaults, values, prefix = "", map = {}, include_defaults = false) {
-    let options = {};
-    for (let key in defaults) {
-        let targetKey = key;
-        if (map[targetKey] !== undefined) {
-            targetKey = map[targetKey];
-        } else {
-            targetKey = prefix + CamelToCamel(targetKey);
-        }
-        if (values[targetKey] !== undefined) {
-            options[key] = values[targetKey];
-        } else {
-            if (include_defaults) {
-                options[key] = defaults[key];
-            }
-        }
-    }
-    return options;
-}
 
 /**
  * Parses a boolean value from a string or a boolean value (e.g. "true" => true, "false" => false, "yes" => true, 
@@ -239,7 +147,7 @@ function searchForm(formName) {
 
         if (formObject === undefined) {
             // if it was not a form name (or ID) let's assume that the form is a selector
-            formObject = document.querySelector(settings.form);
+            formObject = document.querySelector(formName);
             if (formObject === null) {
                 console.warn(`form ${formName} not found`);
             }
@@ -657,12 +565,14 @@ function loadingDialog(message, customContent = null, canCancel = null) {
     return dialog;
 }
 
-window.powerButtons = mergeobjectsr(window.powerButtons, {
-    utils: {
-        confirmDialog: confirmDialog,
-        alertDialog: alertDialog,
-        loadingDialog: loadingDialog
-    }
+if (window.powerButtons.utils === undefined) {
+    window.powerButtons.utils = {};
+}
+
+Object.assign(window.powerButtons.utils, {
+    confirmDialog: confirmDialog,
+    alertDialog: alertDialog,
+    loadingDialog: loadingDialog
 });class PowerButtons {
     // The list of actions registered in the library
     static actionsRegistered = {};
@@ -672,15 +582,40 @@ window.powerButtons = mergeobjectsr(window.powerButtons, {
      * @param action, the action to be registered
      */
     static registerAction(action) {
-        console.debug(`Registering action ${action.NAME}`);
+        console.debug(`Registering action ${action.NAME.toLowerCase()}`);
 
-        this.actionsRegistered[action.NAME] = action;
+        this.actionsRegistered[action.NAME.toLowerCase()] = action;
 
-        let actionConfig = {};
-        actionConfig[`defaults${action.NAME}`] = action.DEFAULTS;
-        window.powerButtons = mergeobjectsr(window.powerButtons, {
-            config: actionConfig
-        });
+        if (window.powerButtons === undefined) {
+            window.powerButtons = {};
+        }
+        if (window.powerButtons.defaults === undefined) {
+            window.powerButtons.defaults = {};
+        }
+        window.powerButtons.defaults[action.NAME.toLowerCase()] = Object.assign({}, action.DEFAULTS);
+    }
+
+    /**
+     * Retrieves the options for an action, by merging the defaults of the action with the defaults of the window and the options
+     * @param {*} action, the action to retrieve the defaults for
+     * @param {*} options, the options to merge with the defaults
+     * @returns an object that contains the options for the action, merged with the defaults for the action and the default
+     *   options for the window
+     */
+    static getActionSettings(action, options) {
+        if (this.actionsRegistered[action.NAME.toLowerCase()] === undefined) {
+            console.error(`The action ${action.NAME} is not registered`);
+            return {};
+        }
+
+        let defaultsWindow = {};
+
+        if ((window.powerButtons !== undefined) && (window.powerButtons.defaults !== undefined) && (window.powerButtons.defaults[action.NAME.toLowerCase()] !== undefined)) {
+            defaultsWindow = window.powerButtons.defaults[action.NAME.toLowerCase()];
+        }
+
+        // Merge the defaults of the action with the defaults of the window and the options
+        return Object.assign({}, action.DEFAULTS, defaultsWindow, options);
     }
 
     /**
@@ -828,19 +763,19 @@ window.powerButtons = mergeobjectsr(window.powerButtons, {
     }
 }
 
-function init(document) {
+function init() {
     PowerButtons.initializeAll();
 }
 
 if (document.addEventListener !== undefined) {
     document.addEventListener('DOMContentLoaded', function(e) {
-        init(document);
+        init();
     });
 }
 class Action {
     static NAME = null;
 
-    static register(exports) {
+    static register() {
         PowerButtons.registerAction(this);
     }
 
@@ -855,16 +790,18 @@ class Action {
      *     For example, if the prefix is "verify" and the option is "title", the data attribute will be 
      *     data-verify-title and the value will be set to the option "title" in the extracted options object.
      * 
-     *     It is important to note that the values that will be extracted from the data attributes will be
-     *     those that are defined in the DEFAULTS of the class. If the data attribute is not defined in the
+     *     It is important to note that the values that will be extracted from the data attributes, will be
+     *     those keys that are defined in the DEFAULTS of the class. If the data attribute is not defined in the
      *     DEFAULTS, it will be ignored.
      * 
      *   - The map is used to map the data attribute names to the options names. 
      * 
      *     Reasoning: if we wanted an option named "verify" and we used the prefix "verify", the data attribute
-     *       would be data-verify-verify, which is not very nice. So, we can use the map to map the data attribute
-     *       names to the options names. If the map is { verify: "" }, the data attribute be data-verify will be
-     *       used to set the option "verify" in the extracted options object.
+     *       would be data-verify-verify, which is not very nice looking. So, we can use the map to map the data 
+     *       key to the expected data attribute name. If the map is { 'verify': 'verify' }, to fill the key 'verify'
+     *       in the resulting options object, the data attribute will be data-verify, instead of data-verify-verify.
+     *       This also works for renaming the data attribute, so if we set a map { 'form': 'formset' }, to fill the 
+     *       key 'form' in the options object, the data attribute to use will be data-formset.
      * 
      * @param {*} el 
      * @param {*} prefix 
@@ -882,7 +819,19 @@ class Action {
             map[prefix] = prefix;
         }
 
-        let options = extractValues(this.DEFAULTS, el.dataset, prefix, map);
+        // Now walk the dataset and extract the options
+        let options = {};
+        for (let key in this.DEFAULTS) {
+            let targetKey = key;
+            if (map[targetKey] !== undefined) {
+                targetKey = map[targetKey];
+            } else {
+                targetKey = prefix + CamelToCamel(targetKey);
+            }
+            if (el.dataset[targetKey] !== undefined) {
+                options[key] = el.dataset[targetKey];
+            }
+        }
         return options;
     }
 
@@ -904,31 +853,28 @@ class Action {
      * @param {*} map, a map of the data attribute names to the options names; if not provided, it will be assumed 
      *                 that the data attribute names are the same as the options names using the camelCase convention
      */
-    static initialize(el, values = {}, prefix = null, map = null) {
-        let options = this.extractOptions(el, prefix, map);
-
-        options.type = this.NAME;
-
-        PowerButtons.addAction(el, Object.assign({},
-                                options, 
-                                extractValues(this.DEFAULTS, values)));
+    static initialize(el, values = {}) {
+        PowerButtons.addAction(el, Object.assign({type: this.NAME.toLowerCase()},
+                                values));
     }
 
     /**
-     * Searches for any element with a data-{prefix} attribute and initializes it using the `initialize` method.
-     *   (see `initialize` for more info).
-     * @param {*} values, the specific values to use for the initialization appart from the default ones
-     * @param {*} prefix, the prefix to use for the data attribute (defaults to the name of the action in lowercase)
-     * @param {*} map, a map of the data attribute names to the options names; if not provided, it will be assumed 
-     *                 that the data attribute names are the same as the options names using the camelCase convention
+     * Searches for any element with a data-{name} attribute, extract the values from the dataset (if any) and initializes 
+     *  it using the `initialize` method. (see `initialize` for more info).
+     * @param {*} values, the specific values to use for the initialization appart from the default ones; if not provided,
+     *                   the values will be extracted from the data attributes
      */
-    static initializeAll(values = {}, prefix = null, map = null) {
-        if (prefix === null) {
-            prefix = this.NAME.toLowerCase();
-        }
+    static initializeAll(values = null) {
+        let prefix = this.NAME.toLowerCase();
 
         for (let el of document.querySelectorAll(`[data-${prefix}`)) {
-            this.initialize(el, values, prefix, map);
+            let options = null;
+            if (values === null) {
+                options = this.extractOptions(el, prefix);
+            } else {
+                options = Object.assign({}, values);
+            }
+            this.initialize(el, options);
         }        
     }
 
@@ -944,204 +890,13 @@ class Action {
         throw new Error("The execute method must be implemented by the derived class");
     }
 }
-class ActionConfirm extends Action {
-    static NAME = "Confirm";
-
-    static DEFAULTS = {
-        // The content of the message to show to the user (it can be either plain text or a HTML fragment)
-        confirm: "Please confirm this action",
-        // A custom content to show to the user under the message (it can be either plain text or a HTML fragment)
-        customContent: null,
-        // The content of the title of the dialog (it can be either plain text or a HTML fragment)
-        title: "The action requires confirmation",
-        // The content for the button that confirms the action (it can be either plain text or a HTML fragment)
-        buttonConfirm: "Confirm",
-        // The content for the button that cancels the action (it can be either plain text or a HTML fragment)
-        buttonCancel: "Cancel",
-        // If falshi (i.e. null, 0, false, "false"), the button to close the dialog will not be shown
-        buttonClose: true,
-        // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
-        escapeKey: true        
-    };
-
-    /**
-     * Executes the action
-     * @param {*} options, the options to use for the execution of the action (those extracted from the data attributes and the
-     *                     user-provided ones)
-     * @param {*} onNextAction, the action to execute after the current one has finished (i.e. to be executed to get to the next
-     *                          action in the process)
-     * @param {*} onCancelActions, the actions to execute if the user cancels the current action (i.e. to stop executing actions)
-     */
-    static execute(options, onNextAction, onCancelActions) {
-        // We merge the options with the defaults to get a valid settings object
-        let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsConfirm, options);
-
-        // We'll create the dialog
-        let dialog = Dialog.create({
-            title: settings.title,
-            message: settings.confirm,
-            customContent: settings.customContent,
-            buttons: [ settings.buttonConfirm, settings.buttonCancel ],
-            escapeKeyCancels: settings.escapeKey,
-            close: settings.buttonClose,
-        }, null, function(result) {
-            if (result === 0) {
-                // The user has confirmed the action
-                if (onNextAction !== null) {
-                    onNextAction();
-                }
-            } else {
-                // The user has cancelled the action
-                if (onCancelActions !== null) {
-                    onCancelActions();
-                }
-            }
-        });
-
-        // We'll show the dialog
-        dialog.show();
-    }        
-}
-
-ActionConfirm.register();class ActionFormset extends Action {
-    static NAME = "Formset";
-
-    static DEFAULTS = {
-        // The form whose values are to be set
-        form: null,
-        // The fields to set
-        fields: {}
-    }
-
-    static extractOptions(el, prefix = null, map = null) {
-        if (prefix === null) {
-            prefix = this.NAME.toLowerCase();
-        }
-
-        let options = super.extractOptions(el, prefix, { form: "formset" });
-
-        let fields = {};
-        for (let key in el.dataset) {
-            if (key.startsWith(prefix)) {
-                let fieldname = key.substring(prefix.length);
-                if (fieldname === '') {
-                    continue;
-                }
-                if (fieldname[0] !== fieldname[0].toUpperCase()) {
-                    // The field names must be always set as data-formset-inputfield; so data-formsetinput-field will be ignored
-                    //  just in case we have other plugin that uses the corresponding prefix
-                    continue;
-                }
-                fieldname = fieldname.toLocaleLowerCase();
-                // The rest if the key is the field name
-                fields[fieldname] = el.dataset[key];
-            }
-        }
-
-        // Just in case we have any field in the default values, we merge them with the extracted ones
-        options.fields = mergeobjectsr(options.fields, fields);
-
-        return options;
-    }
-
-    static execute(options, onNextAction, onCancelActions) {
-        // We merge the options with the defaults to get a valid settings object
-        let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsFormset, options);
-
-        // Get the form to set using the provided selector (or name)
-        let formToSet = searchForm(settings.form);
-        if (formToSet === null) {
-            console.error(`Form not found ${settings.form}`);
-            return;
-        }
-
-        // As the dataset attributes are always in camelCase, the name of the fields to set is case insensitive. So
-        //   in the form we may have the field <input name="Name"> and in the button the attribute data-setform-name="John"
-        //   We'll do this by creating a map of the field name in lowercase and the field name in the form, and then
-        //   we'll use the map to set the values.
-        //
-        // This mechanism restricts the existence of the same field name for different fields in the form, with different
-        //   case. For example, if we have the fields <input name="Name"> and <input name="name">, we'll set the value for
-        //   the last one, as the map will have the reference to it.
-        let nameMap = {};
-        for (var i = 0; i < formToSet.elements.length; i++) {
-            let element = formToSet.elements[i];
-
-            if (element.name !== '') {
-                nameMap[element.name.toLocaleLowerCase()] = element.name;
-            }
-            // In a form, the same input is indexed both by name or by id, but assigning a value is done in the same way
-            if (element.id !== '') {
-                nameMap[element.id.toLocaleLowerCase()] = element.id;
-            }
-        }
-        for (var field in settings.fields) {
-            if (nameMap[field] !== undefined) {
-                let value = settings.fields[field];
-
-                // Get the value with the support for javascript expressions
-                formToSet[nameMap[field]].value = getValueWithJavascriptSupport(value, formToSet);
-            }
-        }
-
-        // Continue with the action chain
-        onNextAction();
-    }
-}
-
-ActionFormset.register();class ActionShowMessage extends Action {
-    static NAME = "ShowMessage";
-    static DEFAULTS = {
-        // The content of the message to show to the user (it can be either plain text or a HTML fragment)
-        showmessage: "This is a message",
-        // A custom content to show to the user under the message (it can be either plain text or a HTML fragment)
-        customContent: null,
-        // The content of the title of the dialog (it can be either plain text or a HTML fragment)
-        title: null,
-        // If falshi (i.e. null, 0, false, "false"), the button to close the dialog will not be shown
-        buttonAccept: "Accept",
-        // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
-        escapeKey: true,
-        // If falshi (i.e. null, 0, false, "false"), the button to close the dialog will not be shown
-        buttonClose: true,
-        // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
-        header: true,
-        // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
-        footer: true
-    }
-
-    static execute(options, onNextAction, onCancelActions) {
-        // We merge the options with the defaults to get a valid settings object
-        let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsShowMessage, options);
-
-        // We'll create the dialog
-        let dialog = Dialog.create({
-            title: settings.title,
-            message: settings.showmessage,
-            customContent: settings.customContent,
-            buttons: [ settings.buttonAccept ],
-            escapeKeyCancels: settings.escapeKey,
-            close: settings.buttonClose,
-            header: (options.header !== undefined)?settings.header : (settings.title!==null&&settings.title!= ""),
-            footer: (options.footer !== undefined)?settings.footer : (settings.buttonAccept!==null&&settings.buttonAccept!= ""),
-        }, null, function(result) {
-            if (onNextAction !== null) {
-                onNextAction();
-            }
-        });
-
-        // We'll show the dialog
-        dialog.show();
-    }    
-}
-
-ActionShowMessage.register();class ActionVerify extends Action {
+class ActionVerify extends Action {
     static NAME = "Verify";
 
     static DEFAULTS = {
-        // The function to call to verify the action. It must return a true or false value
+        // The function to call to verify the action. It must return a true or false value. If it is an string, it will be evaluated as javascript, using _eval_
         verify: null,
-        // The form to bind the verification to. If null, the verification will be bound to the document
+        // The form to bind the verification to. If it is a string, it will be interpreted as a selector (it is not verified if it is a form or any other object). If null, the verification will be bound to the document
         form: null,
         // The content of the message to show to the user if verified to true (it can be either plain text or a HTML fragment)
         verified: null,
@@ -1169,7 +924,7 @@ ActionShowMessage.register();class ActionVerify extends Action {
 
     static execute(options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
-        let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsVerify, options);
+        let settings = PowerButtons.getActionSettings(this, options);
 
         let result = null;
         let bindObject = searchForm(settings.form);
@@ -1243,4 +998,207 @@ ActionShowMessage.register();class ActionVerify extends Action {
     }
 }
 
-ActionVerify.register();
+ActionVerify.register();class ActionConfirm extends Action {
+    static NAME = "Confirm";
+
+    static DEFAULTS = {
+        // The content of the message to show to the user (it can be either plain text or a HTML fragment)
+        confirm: "Please confirm this action",
+        // A custom content to show to the user under the message (it can be either plain text or a HTML fragment)
+        customContent: null,
+        // The content of the title of the dialog (it can be either plain text or a HTML fragment)
+        title: "The action requires confirmation",
+        // The content for the button that confirms the action (it can be either plain text or a HTML fragment)
+        buttonConfirm: "Confirm",
+        // The content for the button that cancels the action (it can be either plain text or a HTML fragment)
+        buttonCancel: "Cancel",
+        // If falshi (i.e. null, 0, false, "false"), the button to close the dialog will not be shown
+        buttonClose: true,
+        // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
+        escapeKey: true        
+    };
+
+    static extractOptions(el, prefix = null, map = null) {
+        let options = super.extractOptions(el, prefix, map);
+        if (options.confirm.trim() == "") {
+            delete options.confirm;
+        }
+        return options;
+    }
+
+
+    /**
+     * Executes the action
+     * @param {*} options, the options to use for the execution of the action (those extracted from the data attributes and the
+     *                     user-provided ones)
+     * @param {*} onNextAction, the action to execute after the current one has finished (i.e. to be executed to get to the next
+     *                          action in the process)
+     * @param {*} onCancelActions, the actions to execute if the user cancels the current action (i.e. to stop executing actions)
+     */
+    static execute(options, onNextAction, onCancelActions) {
+        // We merge the options with the defaults to get a valid settings object
+        let settings = PowerButtons.getActionSettings(this, options);
+
+        // We'll create the dialog
+        let dialog = Dialog.create({
+            title: settings.title,
+            message: settings.confirm,
+            customContent: settings.customContent,
+            buttons: [ settings.buttonConfirm, settings.buttonCancel ],
+            escapeKeyCancels: settings.escapeKey,
+            close: settings.buttonClose,
+        }, null, function(result) {
+            if (result === 0) {
+                // The user has confirmed the action
+                if (onNextAction !== null) {
+                    onNextAction();
+                }
+            } else {
+                // The user has cancelled the action
+                if (onCancelActions !== null) {
+                    onCancelActions();
+                }
+            }
+        });
+
+        // We'll show the dialog
+        dialog.show();
+    }        
+}
+
+ActionConfirm.register();class ActionShowMessage extends Action {
+    static NAME = "ShowMessage";
+    static DEFAULTS = {
+        // The content of the message to show to the user (it can be either plain text or a HTML fragment)
+        showmessage: "This is a message",
+        // A custom content to show to the user under the message (it can be either plain text or a HTML fragment)
+        customContent: null,
+        // The content of the title of the dialog (it can be either plain text or a HTML fragment)
+        title: null,
+        // If falshi (i.e. null, 0, false, "false"), the button to close the dialog will not be shown
+        buttonAccept: "Accept",
+        // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
+        escapeKey: true,
+        // If falshi (i.e. null, 0, false, "false"), the button to close the dialog will not be shown
+        buttonClose: true,
+        // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
+        header: true,
+        // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
+        footer: true
+    }
+
+    static execute(options, onNextAction, onCancelActions) {
+        // We merge the options with the defaults to get a valid settings object
+        let settings = PowerButtons.getActionSettings(this, options);
+
+        // We'll create the dialog
+        let dialog = Dialog.create({
+            title: settings.title,
+            message: settings.showmessage,
+            customContent: settings.customContent,
+            buttons: [ settings.buttonAccept ],
+            escapeKeyCancels: settings.escapeKey,
+            close: settings.buttonClose,
+            header: (options.header !== undefined)?settings.header : (settings.title!==null&&settings.title!= ""),
+            footer: (options.footer !== undefined)?settings.footer : (settings.buttonAccept!==null&&settings.buttonAccept!= ""),
+        }, null, function(result) {
+            if (onNextAction !== null) {
+                onNextAction();
+            }
+        });
+
+        // We'll show the dialog
+        dialog.show();
+    }    
+}
+
+ActionShowMessage.register();class ActionFormset extends Action {
+    static NAME = "Formset";
+
+    static DEFAULTS = {
+        // The form whose values are to be set
+        form: null,
+        // The fields to set
+        fields: {}
+    }
+
+    static extractOptions(el, prefix = null, map = null) {
+        if (prefix === null) {
+            prefix = this.NAME.toLowerCase();
+        }
+
+        let options = super.extractOptions(el, prefix, { form: "formset" });
+
+        let fields = {};
+        for (let key in el.dataset) {
+            if (key.startsWith(prefix)) {
+                let fieldname = key.substring(prefix.length);
+                if (fieldname === '') {
+                    continue;
+                }
+                if (fieldname[0] !== fieldname[0].toUpperCase()) {
+                    // The field names must be always set as data-formset-inputfield; so data-formsetinput-field will be ignored
+                    //  just in case we have other plugin that uses the corresponding prefix
+                    continue;
+                }
+                fieldname = fieldname.toLocaleLowerCase();
+                // The rest if the key is the field name
+                fields[fieldname] = el.dataset[key];
+            }
+        }
+
+        // Just in case we have any field in the default values, we merge them with the extracted ones
+        if (options.fields === undefined) {
+            options.fields = {};
+        }
+        Object.assign(options.fields, fields);
+
+        return options;
+    }
+
+    static execute(options, onNextAction, onCancelActions) {
+        // We merge the options with the defaults to get a valid settings object
+        let settings = PowerButtons.getActionSettings(this, options);
+
+        // Get the form to set using the provided selector (or name)
+        let formToSet = searchForm(settings.form);
+        if (formToSet === null) {
+            console.error(`Form not found ${settings.form}`);
+            return;
+        }
+
+        // As the dataset attributes are always in camelCase, the name of the fields to set is case insensitive. So
+        //   in the form we may have the field <input name="Name"> and in the button the attribute data-setform-name="John"
+        //   We'll do this by creating a map of the field name in lowercase and the field name in the form, and then
+        //   we'll use the map to set the values.
+        //
+        // This mechanism restricts the existence of the same field name for different fields in the form, with different
+        //   case. For example, if we have the fields <input name="Name"> and <input name="name">, we'll set the value for
+        //   the last one, as the map will have the reference to it.
+        let nameMap = {};
+        for (var i = 0; i < formToSet.elements.length; i++) {
+            let element = formToSet.elements[i];
+
+            if (element.name !== '') {
+                nameMap[element.name.toLocaleLowerCase()] = element.name;
+            }
+            // In a form, the same input is indexed both by name or by id, but assigning a value is done in the same way
+            if (element.id !== '') {
+                nameMap[element.id.toLocaleLowerCase()] = element.id;
+            }
+        }
+        for (var field in settings.fields) {
+            if (nameMap[field] !== undefined) {
+                let value = settings.fields[field];
+
+                // Get the value with the support for javascript expressions
+                formToSet[nameMap[field]].value = getValueWithJavascriptSupport(value, formToSet);
+            }
+        }
+
+        // Continue with the action chain
+        onNextAction();
+    }
+}
+
+ActionFormset.register();

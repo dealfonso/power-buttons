@@ -16,9 +16,39 @@
 
 (function (window, document) {
 	"use strict";
-	window.powerButtons = {
-		version: "0.1.0"
+	window.powerButtons = function (pluginName, els = [], options = {}) {
+		let elements = els;
+		if (typeof elements === "string") {
+			elements = document.querySelectorAll(elements)
+		} else {
+			if (elements.length === undefined) {
+				elements = [elements]
+			}
+		}
+		let pluginToApply = null;
+		for (let actionName in PowerButtons.actionsRegistered) {
+			if (pluginName.toLocaleLowerCase() === actionName.toLocaleLowerCase()) {
+				pluginToApply = PowerButtons.actionsRegistered[actionName];
+				break
+			}
+		}
+		if (pluginToApply === undefined) {
+			console.error(`The action ${pluginName} is not registered`)
+		} else {
+			for (let el of elements) {
+				pluginToApply.initialize(el, options)
+			}
+		}
+		return els
 	};
+	window.powerButtons.version = "0.1.0dev";
+	if (window.$ !== undefined) {
+		window.$.fn.powerButtons = function (pluginName, options = {}) {
+			window.powerButtons(pluginName, this, options);
+			return this
+		};
+		window.$.fn.powerButtons.version = window.powerButtons.version
+	}
 
 	function pascalToSnake(str) {
 		return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).replace(/^_*/, "")
@@ -42,83 +72,6 @@
 
 	function isElement(el) {
 		return el instanceof Element || el instanceof HTMLDocument
-	}
-
-	function flattenobjects(o1, ...objects) {
-		let result = {};
-		for (let key in o1) {
-			result[key] = o1[key];
-			for (let i = 0; i < objects.length; i++) {
-				if (objects[i][key] !== undefined) {
-					result[key] = objects[i][key]
-				}
-			}
-		}
-		return result
-	}
-
-	function mergeobjectsr(...objects) {
-		if (objects.length === 0) {
-			return {}
-		} else if (objects.length === 1) {
-			return objects[0]
-		} else {
-			let result = {};
-			let o1 = objects[0];
-			if (o1 === undefined) {
-				o1 = {}
-			}
-			let o2 = objects[1];
-			if (o2 === undefined) {
-				o2 = {}
-			}
-			if (o1 !== undefined) {
-				for (let key in o1) {
-					if (o2[key] !== undefined) {
-						if (typeof o1[key] === "object" && typeof o2[key] === "object") {
-							result[key] = mergeobjectsr(o1[key], o2[key]);
-							continue
-						} else {
-							result[key] = o2[key]
-						}
-					} else {
-						result[key] = o1[key]
-					}
-				}
-			}
-			for (let key in o2) {
-				if (o1 !== undefined) {
-					if (o1[key] === undefined) {
-						result[key] = o2[key]
-					} else {}
-				}
-			}
-			if (objects.length === 2) {
-				return result
-			} else {
-				return mergeobjectsr(result, ...objects.slice(2))
-			}
-		}
-	}
-
-	function extractValues(defaults, values, prefix = "", map = {}, include_defaults = false) {
-		let options = {};
-		for (let key in defaults) {
-			let targetKey = key;
-			if (map[targetKey] !== undefined) {
-				targetKey = map[targetKey]
-			} else {
-				targetKey = prefix + CamelToCamel(targetKey)
-			}
-			if (values[targetKey] !== undefined) {
-				options[key] = values[targetKey]
-			} else {
-				if (include_defaults) {
-					options[key] = defaults[key]
-				}
-			}
-		}
-		return options
 	}
 
 	function parseBoolean(value) {
@@ -185,7 +138,7 @@
 		if (formName !== null) {
 			formObject = document.forms[formName];
 			if (formObject === undefined) {
-				formObject = document.querySelector(settings.form);
+				formObject = document.querySelector(formName);
 				if (formObject === null) {
 					console.warn(`form ${formName} not found`)
 				}
@@ -516,23 +469,37 @@
 		dialog.show();
 		return dialog
 	}
-	window.powerButtons = mergeobjectsr(window.powerButtons, {
-		utils: {
-			confirmDialog: confirmDialog,
-			alertDialog: alertDialog,
-			loadingDialog: loadingDialog
-		}
+	if (window.powerButtons.utils === undefined) {
+		window.powerButtons.utils = {}
+	}
+	Object.assign(window.powerButtons.utils, {
+		confirmDialog: confirmDialog,
+		alertDialog: alertDialog,
+		loadingDialog: loadingDialog
 	});
 	class PowerButtons {
 		static actionsRegistered = {};
 		static registerAction(action) {
-			console.debug(`Registering action ${action.NAME}`);
-			this.actionsRegistered[action.NAME] = action;
-			let actionConfig = {};
-			actionConfig[`defaults${action.NAME}`] = action.DEFAULTS;
-			window.powerButtons = mergeobjectsr(window.powerButtons, {
-				config: actionConfig
-			})
+			console.debug(`Registering action ${action.NAME.toLowerCase()}`);
+			this.actionsRegistered[action.NAME.toLowerCase()] = action;
+			if (window.powerButtons === undefined) {
+				window.powerButtons = {}
+			}
+			if (window.powerButtons.defaults === undefined) {
+				window.powerButtons.defaults = {}
+			}
+			window.powerButtons.defaults[action.NAME.toLowerCase()] = Object.assign({}, action.DEFAULTS)
+		}
+		static getActionSettings(action, options) {
+			if (this.actionsRegistered[action.NAME.toLowerCase()] === undefined) {
+				console.error(`The action ${action.NAME} is not registered`);
+				return {}
+			}
+			let defaultsWindow = {};
+			if (window.powerButtons !== undefined && window.powerButtons.defaults !== undefined && window.powerButtons.defaults[action.NAME.toLowerCase()] !== undefined) {
+				defaultsWindow = window.powerButtons.defaults[action.NAME.toLowerCase()]
+			}
+			return Object.assign({}, action.DEFAULTS, defaultsWindow, options)
 		}
 		static addAction(el, options = {}) {
 			let powerButton = PowerButtons.addActionSupport(el);
@@ -609,17 +576,17 @@
 		}
 	}
 
-	function init(document) {
+	function init() {
 		PowerButtons.initializeAll()
 	}
 	if (document.addEventListener !== undefined) {
 		document.addEventListener("DOMContentLoaded", function (e) {
-			init(document)
+			init()
 		})
 	}
 	class Action {
 		static NAME = null;
-		static register(exports) {
+		static register() {
 			PowerButtons.registerAction(this)
 		}
 		static DEFAULTS = {};
@@ -631,150 +598,41 @@
 				map = {};
 				map[prefix] = prefix
 			}
-			let options = extractValues(this.DEFAULTS, el.dataset, prefix, map);
+			let options = {};
+			for (let key in this.DEFAULTS) {
+				let targetKey = key;
+				if (map[targetKey] !== undefined) {
+					targetKey = map[targetKey]
+				} else {
+					targetKey = prefix + CamelToCamel(targetKey)
+				}
+				if (el.dataset[targetKey] !== undefined) {
+					options[key] = el.dataset[targetKey]
+				}
+			}
 			return options
 		}
-		static initialize(el, values = {}, prefix = null, map = null) {
-			let options = this.extractOptions(el, prefix, map);
-			options.type = this.NAME;
-			PowerButtons.addAction(el, Object.assign({}, options, extractValues(this.DEFAULTS, values)))
+		static initialize(el, values = {}) {
+			PowerButtons.addAction(el, Object.assign({
+				type: this.NAME.toLowerCase()
+			}, values))
 		}
-		static initializeAll(values = {}, prefix = null, map = null) {
-			if (prefix === null) {
-				prefix = this.NAME.toLowerCase()
-			}
+		static initializeAll(values = null) {
+			let prefix = this.NAME.toLowerCase();
 			for (let el of document.querySelectorAll(`[data-${prefix}`)) {
-				this.initialize(el, values, prefix, map)
+				let options = null;
+				if (values === null) {
+					options = this.extractOptions(el, prefix)
+				} else {
+					options = Object.assign({}, values)
+				}
+				this.initialize(el, options)
 			}
 		}
 		static execute(options, onNextAction, onCancelActions) {
 			throw new Error("The execute method must be implemented by the derived class")
 		}
 	}
-	class ActionConfirm extends Action {
-		static NAME = "Confirm";
-		static DEFAULTS = {
-			confirm: "Please confirm this action",
-			customContent: null,
-			title: "The action requires confirmation",
-			buttonConfirm: "Confirm",
-			buttonCancel: "Cancel",
-			buttonClose: true,
-			escapeKey: true
-		};
-		static execute(options, onNextAction, onCancelActions) {
-			let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsConfirm, options);
-			let dialog = Dialog.create({
-				title: settings.title,
-				message: settings.confirm,
-				customContent: settings.customContent,
-				buttons: [settings.buttonConfirm, settings.buttonCancel],
-				escapeKeyCancels: settings.escapeKey,
-				close: settings.buttonClose
-			}, null, function (result) {
-				if (result === 0) {
-					if (onNextAction !== null) {
-						onNextAction()
-					}
-				} else {
-					if (onCancelActions !== null) {
-						onCancelActions()
-					}
-				}
-			});
-			dialog.show()
-		}
-	}
-	ActionConfirm.register();
-	class ActionFormset extends Action {
-		static NAME = "Formset";
-		static DEFAULTS = {
-			form: null,
-			fields: {}
-		};
-		static extractOptions(el, prefix = null, map = null) {
-			if (prefix === null) {
-				prefix = this.NAME.toLowerCase()
-			}
-			let options = super.extractOptions(el, prefix, {
-				form: "formset"
-			});
-			let fields = {};
-			for (let key in el.dataset) {
-				if (key.startsWith(prefix)) {
-					let fieldname = key.substring(prefix.length);
-					if (fieldname === "") {
-						continue
-					}
-					if (fieldname[0] !== fieldname[0].toUpperCase()) {
-						continue
-					}
-					fieldname = fieldname.toLocaleLowerCase();
-					fields[fieldname] = el.dataset[key]
-				}
-			}
-			options.fields = mergeobjectsr(options.fields, fields);
-			return options
-		}
-		static execute(options, onNextAction, onCancelActions) {
-			let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsFormset, options);
-			let formToSet = searchForm(settings.form);
-			if (formToSet === null) {
-				console.error(`Form not found ${settings.form}`);
-				return
-			}
-			let nameMap = {};
-			for (var i = 0; i < formToSet.elements.length; i++) {
-				let element = formToSet.elements[i];
-				if (element.name !== "") {
-					nameMap[element.name.toLocaleLowerCase()] = element.name
-				}
-				if (element.id !== "") {
-					nameMap[element.id.toLocaleLowerCase()] = element.id
-				}
-			}
-			for (var field in settings.fields) {
-				if (nameMap[field] !== undefined) {
-					let value = settings.fields[field];
-					formToSet[nameMap[field]].value = getValueWithJavascriptSupport(value, formToSet)
-				}
-			}
-			onNextAction()
-		}
-	}
-	ActionFormset.register();
-	class ActionShowMessage extends Action {
-		static NAME = "ShowMessage";
-		static DEFAULTS = {
-			showmessage: "This is a message",
-			customContent: null,
-			title: null,
-			buttonAccept: "Accept",
-			escapeKey: true,
-			buttonClose: true,
-			header: true,
-			footer: true
-		};
-		static execute(options, onNextAction, onCancelActions) {
-			let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsShowMessage, options);
-			let dialog = Dialog.create({
-				title: settings.title,
-				message: settings.showmessage,
-				customContent: settings.customContent,
-				buttons: [settings.buttonAccept],
-				escapeKeyCancels: settings.escapeKey,
-				close: settings.buttonClose,
-				header: options.header !== undefined ? settings.header : settings.title !== null && settings.title != "",
-				footer: options.footer !== undefined ? settings.footer : settings.buttonAccept !== null && settings.buttonAccept != ""
-			}, null, function (result) {
-				if (onNextAction !== null) {
-					onNextAction()
-				}
-			});
-			dialog.show()
-		}
-	}
-	ActionShowMessage.register();
 	class ActionVerify extends Action {
 		static NAME = "Verify";
 		static DEFAULTS = {
@@ -793,7 +651,7 @@
 			footer: true
 		};
 		static execute(options, onNextAction, onCancelActions) {
-			let settings = flattenobjects(this.DEFAULTS, window.powerButtons.config.defaultsVerify, options);
+			let settings = PowerButtons.getActionSettings(this, options);
 			let result = null;
 			let bindObject = searchForm(settings.form);
 			if (bindObject === null) {
@@ -862,5 +720,139 @@
 			}
 		}
 	}
-	ActionVerify.register()
+	ActionVerify.register();
+	class ActionConfirm extends Action {
+		static NAME = "Confirm";
+		static DEFAULTS = {
+			confirm: "Please confirm this action",
+			customContent: null,
+			title: "The action requires confirmation",
+			buttonConfirm: "Confirm",
+			buttonCancel: "Cancel",
+			buttonClose: true,
+			escapeKey: true
+		};
+		static extractOptions(el, prefix = null, map = null) {
+			let options = super.extractOptions(el, prefix, map);
+			if (options.confirm.trim() == "") {
+				delete options.confirm
+			}
+			return options
+		}
+		static execute(options, onNextAction, onCancelActions) {
+			let settings = PowerButtons.getActionSettings(this, options);
+			let dialog = Dialog.create({
+				title: settings.title,
+				message: settings.confirm,
+				customContent: settings.customContent,
+				buttons: [settings.buttonConfirm, settings.buttonCancel],
+				escapeKeyCancels: settings.escapeKey,
+				close: settings.buttonClose
+			}, null, function (result) {
+				if (result === 0) {
+					if (onNextAction !== null) {
+						onNextAction()
+					}
+				} else {
+					if (onCancelActions !== null) {
+						onCancelActions()
+					}
+				}
+			});
+			dialog.show()
+		}
+	}
+	ActionConfirm.register();
+	class ActionShowMessage extends Action {
+		static NAME = "ShowMessage";
+		static DEFAULTS = {
+			showmessage: "This is a message",
+			customContent: null,
+			title: null,
+			buttonAccept: "Accept",
+			escapeKey: true,
+			buttonClose: true,
+			header: true,
+			footer: true
+		};
+		static execute(options, onNextAction, onCancelActions) {
+			let settings = PowerButtons.getActionSettings(this, options);
+			let dialog = Dialog.create({
+				title: settings.title,
+				message: settings.showmessage,
+				customContent: settings.customContent,
+				buttons: [settings.buttonAccept],
+				escapeKeyCancels: settings.escapeKey,
+				close: settings.buttonClose,
+				header: options.header !== undefined ? settings.header : settings.title !== null && settings.title != "",
+				footer: options.footer !== undefined ? settings.footer : settings.buttonAccept !== null && settings.buttonAccept != ""
+			}, null, function (result) {
+				if (onNextAction !== null) {
+					onNextAction()
+				}
+			});
+			dialog.show()
+		}
+	}
+	ActionShowMessage.register();
+	class ActionFormset extends Action {
+		static NAME = "Formset";
+		static DEFAULTS = {
+			form: null,
+			fields: {}
+		};
+		static extractOptions(el, prefix = null, map = null) {
+			if (prefix === null) {
+				prefix = this.NAME.toLowerCase()
+			}
+			let options = super.extractOptions(el, prefix, {
+				form: "formset"
+			});
+			let fields = {};
+			for (let key in el.dataset) {
+				if (key.startsWith(prefix)) {
+					let fieldname = key.substring(prefix.length);
+					if (fieldname === "") {
+						continue
+					}
+					if (fieldname[0] !== fieldname[0].toUpperCase()) {
+						continue
+					}
+					fieldname = fieldname.toLocaleLowerCase();
+					fields[fieldname] = el.dataset[key]
+				}
+			}
+			if (options.fields === undefined) {
+				options.fields = {}
+			}
+			Object.assign(options.fields, fields);
+			return options
+		}
+		static execute(options, onNextAction, onCancelActions) {
+			let settings = PowerButtons.getActionSettings(this, options);
+			let formToSet = searchForm(settings.form);
+			if (formToSet === null) {
+				console.error(`Form not found ${settings.form}`);
+				return
+			}
+			let nameMap = {};
+			for (var i = 0; i < formToSet.elements.length; i++) {
+				let element = formToSet.elements[i];
+				if (element.name !== "") {
+					nameMap[element.name.toLocaleLowerCase()] = element.name
+				}
+				if (element.id !== "") {
+					nameMap[element.id.toLocaleLowerCase()] = element.id
+				}
+			}
+			for (var field in settings.fields) {
+				if (nameMap[field] !== undefined) {
+					let value = settings.fields[field];
+					formToSet[nameMap[field]].value = getValueWithJavascriptSupport(value, formToSet)
+				}
+			}
+			onNextAction()
+		}
+	}
+	ActionFormset.register()
 })(window, document);
