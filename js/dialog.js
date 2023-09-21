@@ -146,6 +146,7 @@ class Dialog {
             this.onHidden = onHidden;
         }
         this.modal.show();
+        return promiseForEvent(this.dialog, "shown.bs.modal")
     }
 
     /**
@@ -153,6 +154,7 @@ class Dialog {
      */
     hide() {
         this.modal.hide();
+        return promiseForEvent(this.dialog, "hidden.bs.modal")
     }
 
     /**

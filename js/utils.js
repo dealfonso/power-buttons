@@ -145,3 +145,22 @@ function getValueWithJavascriptSupport(value, context = null) {
     }
     return value
 }
+
+/**
+ * Returns a promise that will be resolved when the event is triggered in the element
+ * @param {HTMLElement} el, the element to wait for the event
+ * @param {string} event, the event name to wait for
+ * @returns a promise that will be resolved when the event is triggered
+ */
+function promiseForEvent(el, event) {
+    let resolveFunction = null;
+    let promise = new Promise((resolve) => {
+        resolveFunction = resolve;
+    });
+    let handler = function() {
+        el.removeEventListener(event, handler);
+        resolveFunction();
+    }
+    el.addEventListener(event, handler);
+    return promise;
+}
