@@ -167,6 +167,19 @@
 		}
 		return value;
 	}
+
+	function promiseForEvent(el, event) {
+		let resolveFunction = null;
+		let promise = new Promise(resolve => {
+			resolveFunction = resolve;
+		});
+		let handler = function () {
+			el.removeEventListener(event, handler);
+			resolveFunction();
+		};
+		el.addEventListener(event, handler);
+		return promise;
+	}
 	class DialogLegacy {
 		DEFAULTS = {
 			message: "Main message",
@@ -320,9 +333,11 @@
 				this.onHidden = onHidden;
 			}
 			this.modal.show();
+			return promiseForEvent(this.dialog, "shown.bs.modal");
 		}
 		hide() {
 			this.modal.hide();
+			return promiseForEvent(this.dialog, "hidden.bs.modal");
 		}
 		_handleButton(index, button, buttonObject) {
 			this.result = index;
@@ -763,6 +778,76 @@
 		}
 	}
 	ActionConfirm.register();
+	class ActionAsyncTask extends Action {
+		static NAME = "AsyncTask";
+		static DEFAULTS = {
+			task: null,
+			message: "Please wait...",
+			customContent: null,
+			title: null,
+			buttonCancel: "Cancel",
+			cancel: null,
+			header: true,
+			footer: true
+		};
+		static extractOptions(el, prefix = null, map = null) {
+			return super.extractOptions(el, prefix, {
+				task: "asynctask"
+			});
+		}
+		static execute(options, onNextAction, onCancelActions) {
+			let settings = PowerButtons.getActionSettings(this, options);
+			if (settings.task === null) {
+				console.error("The task to execute cannot be null");
+				return;
+			}
+			let task = null;
+			if (typeof settings.task === "string") {
+				task = async function () {
+					return await eval(settings.task);
+				};
+			} else if (typeof settings.task === "function") {
+				task = settings.task;
+			} else {
+				console.error("The task to execute must be either a string or a function");
+				return;
+			}
+			let buttons = [];
+			let cancelHandler = null;
+			if (settings.cancel !== null) {
+				buttons = [settings.buttonCancel];
+				if (typeof settings.cancel === "string") {
+					cancelHandler = function () {
+						eval(settings.cancel);
+					};
+				} else if (typeof settings.cancel === "function") {
+					cancelHandler = settings.cancel;
+				} else {
+					console.error("The cancel handler must be either a string or a function");
+				}
+			}
+			let dialog = Dialog.create({
+				title: settings.title,
+				message: settings.message,
+				customContent: settings.customContent,
+				buttons: buttons,
+				escapeKeyCancels: false,
+				close: false,
+				header: options.header !== undefined ? settings.header : settings.title !== null && settings.title != "",
+				footer: options.footer !== undefined ? settings.footer : cancelHandler !== null
+			}, cancelHandler, function (result) {
+				if (onNextAction !== null) {
+					onNextAction();
+				}
+			});
+			dialog.show().then(function () {
+				task().finally(function () {
+					dialog.hide();
+				});
+			});
+		}
+	}
+	ActionAsyncTask.register();
 	class ActionShowMessage extends Action {
 		static NAME = "ShowMessage";
 		static DEFAULTS = {
@@ -802,9 +887,6 @@
 			fields: {}
 		};
 		static extractOptions(el, prefix = null, map = null) {
-			if (prefix === null) {
-				prefix = this.NAME.toLowerCase();
-			}
 			let options = super.extractOptions(el, prefix, {
 				form: "formset"
 			});
