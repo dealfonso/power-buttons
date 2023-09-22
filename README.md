@@ -65,7 +65,7 @@ $ cp power-buttons/dist/power-buttons.js /path/to/my/html/folder
 You can use this library directly from jsdelivr CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/dealfonso/power-buttons/power-buttons.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/dealfonso/jsconfirm-buttons@power-buttons/dist/powerbuttons.js"></script>
 ```
 
 # Using
@@ -325,10 +325,12 @@ A button can contain multiple of these functionalities at the same time. For exa
 If using the declarative method, there is a fixed order:
 
 1. _verify_
-2. _confirm_
-3. _showmessage_
-4. _formset_
-5. the real action (i.e. `onclick` handler)
+1. _confirm_
+1. _asynctask_
+1. _showmessage_
+1. _formset_
+1. _formbutton_ (set the field values that depend on a function)
+1. the real action (i.e. `onclick` handler)
 
 If using the programmatical method, the order in which the actions are added is the order in which they will be executed.
 
