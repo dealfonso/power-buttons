@@ -21,6 +21,7 @@
     <script src="js/plugins/20.actionasynctask.js"></script>
     <script src="js/plugins/30.actionshowmessage.js"></script>
     <script src="js/plugins/40.actionformset.js"></script>
+    <script src="js/plugins/80.actionformbutton.js"></script>
     <!-- <script src="dist/powerbuttons.js"></script> -->
       <style>
       html, body {
@@ -80,9 +81,11 @@
     <div class="example">
       <h3>Basic example for the asynctask button</h3>
       <p class="small">Here we have a long running task that needs to be executed upon pressing the button. The asynctask button will execute it and in the meanwhile will show a modal dialog</p>
+      <p class="small"><span class="fw-bold">hint:</span> here we also add a data-showmessage that will execute after the task ends</p>
       <button class="btn btn-primary"
         data-asynctask="fetch('https://hub.dummyapis.com/delay?seconds=5', {mode:'no-cors'})"
-        data-asynctask-custom-content="<div class='spinner'></div>">async task</button>
+        data-showmessage="long task completed"
+        >async task</button>
     </div>
     <div class="example">
       <h3>Basic example for the formset button</h3>
@@ -94,6 +97,16 @@
         <input type="text" name="testinput2" class="form-control">
       </form>
       <button type="button" data-formset="testform1" data-formset-testinput1="value for field 1" data-formset-testinput2="javascript:'value for field 2 taken from field 1 using javascript expression: ' + this.testinput1.value" class="btn btn-primary mt-2">test formset</button>
+    </div>
+    <div class="example">
+      <h3>Basic example for the formbutton</h3>
+      <p class="small">In this example, we are substituting the button for a form inside a button, so that the form is submitted when the button is clicked</p>
+      <p class="small"><span class="fw-bold">hint:</span> If you click the button, the button will submit a form to this page; in the submitted URL you can check that the name of the button appears as a parameter (the submit method is set to GET)</p>
+      <button type="button" class="btn btn-primary" 
+        data-formbutton
+        data-formbutton-method="get"
+        name="my-form-button"
+        value="1">form button</button>
     </div>
     <div class="example">
       <h3>Using the library in other components (1)</h3>
@@ -172,6 +185,17 @@
         data-asynctask="startTask()"
         data-asynctask-cancel="abortTask()" 
         data-asynctask-custom-content="<div class='spinner'></div>">async task</button>
+    </div>
+    <div class="example">
+      <h3>Extended example for the formbutton</h3>
+      <p class="small">The form button can also add some hidden fields, so that they are submitted along with the value of the button</p>
+      <p class="small"><span class="fw-bold">Note:</span> in this case we are adding two fields: <span class="fst-italic">x1</span> and  <span class="fst-italic">randomvalue</span>. The second is a javascript expression that will be calculated when clicking on the button</p>
+      <button type="button" class="btn btn-primary" 
+        data-showmessage="submitting the form"
+        data-formbutton 
+        data-formbutton-method="get"
+        data-formbutton-field-x1="literal value" 
+        data-formbutton-field-random-Value="javascript:Math.floor(Math.random() * 10000)">form button</button>
     </div>
     <div class="example">
       <h3>Dealing with defaults (internationalization example)</h3>
