@@ -153,16 +153,21 @@
 	}
 
 	function getValueWithJavascriptSupport(value, context = null) {
-		let internalValue = value.trim();
-		if (internalValue.startsWith("javascript:")) {
-			try {
-				let f = internalValue.substring(11);
-				value = function () {
-					return eval(f);
-				}.bind(context)();
-			} catch (e) {
-				console.error(`Error executing javascript code ${internalValue.substring(11)}, error: ${e}`);
-				value = null;
+		if (typeof value === "function") {
+			return value.bind(context);
+		}
+		if (typeof value === "string") {
+			let internalValue = value.trim();
+			if (internalValue.startsWith("javascript:")) {
+				try {
+					let f = internalValue.substring(11);
+					value = function () {
+						return eval(f);
+					}.bind(context);
+				} catch (e) {
+					console.error(`Error executing javascript code ${internalValue.substring(11)}, error: ${e}`);
+					value = null;
+				}
 			}
 		}
 		return value;
@@ -179,6 +184,22 @@
 		};
 		el.addEventListener(event, handler);
 		return promise;
+	}
+
+	function isEmpty(obj) {
+		if (obj === null || obj === undefined) {
+			return true;
+		}
+		if (obj instanceof Array) {
+			return obj.length === 0;
+		}
+		if (obj instanceof Object) {
+			return Object.keys(obj).length === 0;
+		}
+		if (typeof obj === "string") {
+			return obj.trim() === "";
+		}
+		return false;
 	}
 	class DialogLegacy {
 		DEFAULTS = {
@@ -835,7 +856,10 @@
 				close: false,
 				header: options.header !== undefined ? settings.header : settings.title !== null && settings.title != "",
 				footer: options.footer !== undefined ? settings.footer : cancelHandler !== null
-			}, cancelHandler, function (result) {
+			}, function () {
+				cancelHandler();
+				onCancelActions();
+			}, function (result) {
 				if (onNextAction !== null) {
 					onNextAction();
 				}
@@ -930,11 +954,128 @@
 			for (var field in settings.fields) {
 				if (nameMap[field] !== undefined) {
 					let value = settings.fields[field];
-					formToSet[nameMap[field]].value = getValueWithJavascriptSupport(value, formToSet);
+					let result = getValueWithJavascriptSupport(value, formToSet);
+					if (typeof result === "function") {
+						try {
+							result = result();
+						} catch (e) {
+							console.error(`Error executing ${value}`, e);
+							continue;
+						}
+					}
+					formToSet[nameMap[field]].value = result;
 				}
 			}
 			onNextAction();
 		}
 	}
 	ActionFormset.register();
+	class ActionFormButton extends Action {
+		static NAME = "FormButton";
+		static DEFAULTS = {
+			formbutton: null,
+			method: "post",
+			formClass: "formbutton",
+			convertCase: "none",
+			formId: null,
+			fields: {}
+		};
+		static extractOptions(el, prefix = null, map = null) {
+			let options = super.extractOptions(el, prefix, map);
+			let fields = {};
+			prefix = prefix + "Field";
+			for (let key in el.dataset) {
+				if (key.startsWith(prefix)) {
+					let fieldname = key.substring(prefix.length);
+					if (fieldname === "") {
+						continue;
+					}
+					if (fieldname[0] !== fieldname[0].toUpperCase()) {
+						continue;
+					}
+					switch (options.convertCase) {
+					case "kebab":
+						fieldname = pascalToKebab(fieldname);
+						break;
+					case "snake":
+						fieldname = pascalToSnake(fieldname);
+						break;
+					case "camel":
+						console.log(fieldname, pascalToCamel(fieldname));
+						fieldname = pascalToCamel(fieldname);
+						break;
+					case "pascal":
+						break;
+					}
+					fields[fieldname] = el.dataset[key];
+				}
+			}
+			if (options.fields === undefined) {
+				options.fields = {};
+			}
+			Object.assign(options.fields, fields);
+			return options;
+		}
+		static initialize(el, values = {}) {
+			let settings = PowerButtons.getActionSettings(this, values);
+			let form = document.createElement("form");
+			form.method = settings.method;
+			if (!isEmpty(settings.formbutton)) {
+				form.action = settings.formbutton;
+			}
+			if (settings.formId !== null) {
+				form.id = settings.formId;
+			}
+			let cssClasses = settings.formClass.split(" ");
+			for (var i = 0; i < cssClasses.length; i++) {
+				if (!isEmpty(cssClasses[i])) {
+					form.classList.add(cssClasses[i]);
+				}
+			}
+			el.type = "submit";
+			let fields = {};
+			for (let fieldName in settings.fields) {
+				fields[fieldName] = getValueWithJavascriptSupport(settings.fields[fieldName], form);
+			}
+			let pendingFields = {};
+			for (let fieldName in fields) {
+				let input = document.createElement("input");
+				input.type = "hidden";
+				input.name = fieldName;
+				if (typeof fields[fieldName] === "function") {
+					input.value = "";
+					pendingFields[fieldName] = fields[fieldName];
+				} else {
+					input.value = fields[fieldName];
+				}
+				form.appendChild(input);
+			}
+			el.parentNode.replaceChild(form, el);
+			form.appendChild(el);
+			if (Object.keys(pendingFields).length > 0) {
+				settings.fields = pendingFields;
+				settings._formObject = form;
+				super.initialize(el, settings);
+			}
+		}
+		static execute(options, onNextAction, onCancelActions) {
+			let settings = PowerButtons.getActionSettings(this, options);
+			let error = false;
+			for (let fieldName in settings.fields) {
+				try {
+					let value = settings.fields[fieldName]();
+					settings._formObject[fieldName].value = value;
+				} catch (e) {
+					console.error(`Error obtaining value for field ${fieldName}: ${e}`);
+					error = true;
+				}
+			}
+			if (error) {
+				onCancelActions();
+			} else {
+				onNextAction();
+			}
+		}
+	}
+	ActionFormButton.register();
 })(window, document);
