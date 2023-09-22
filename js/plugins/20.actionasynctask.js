@@ -73,7 +73,10 @@ class ActionAsyncTask extends Action {
             close: false,
             header: (options.header !== undefined)?settings.header : (settings.title!==null&&settings.title!= ""),
             footer: (options.footer !== undefined)?settings.footer : (cancelHandler!==null),
-        }, cancelHandler, function(result) {
+        }, function() {
+                cancelHandler();
+                onCancelActions();
+            }, function(result) {
             if (onNextAction !== null) {
                 onNextAction();
             }
