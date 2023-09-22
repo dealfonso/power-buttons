@@ -75,7 +75,16 @@ class ActionFormset extends Action {
                 let value = settings.fields[field];
 
                 // Get the value with the support for javascript expressions
-                formToSet[nameMap[field]].value = getValueWithJavascriptSupport(value, formToSet);
+                let result = getValueWithJavascriptSupport(value, formToSet);
+                if (typeof(result) === 'function') {
+                    try {
+                        result = result();
+                    } catch (e) {
+                        console.error(`Error executing ${value}`, e);
+                        continue;
+                    }
+                }
+                formToSet[nameMap[field]].value = result;
             }
         }
 

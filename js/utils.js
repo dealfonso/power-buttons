@@ -130,19 +130,30 @@ function searchForm(formName) {
  * @returns the value or the result of the javascript code
  */
 function getValueWithJavascriptSupport(value, context = null) {
-    let internalValue = value.trim();
-    // If the value starts with javascript:, we'll execute the code and use the result as value
-    if (internalValue.startsWith("javascript:")) {
-        try {
-            let f = internalValue.substring(11);
-            value = function() {
-                return eval(f)
-            }.bind(context)();
-        } catch (e) {
-            console.error(`Error executing javascript code ${internalValue.substring(11)}, error: ${e}`);
-            value = null;
+    // If it is a function, we'll simply return the function bound to the context
+    if (typeof(value) === "function") {
+        return value.bind(context);
+    }
+
+    // If it is a string, we'll check if it starts with javascript: and, if so, we'll return a function that will
+    //  execute the code and return the result
+    if (typeof(value) === "string") {
+        let internalValue = value.trim();
+        // If the value starts with javascript:, we'll execute the code and use the result as value
+        if (internalValue.startsWith("javascript:")) {
+            try {
+                let f = internalValue.substring(11);
+                value = function() {
+                    return eval(f)
+                }.bind(context);
+            } catch (e) {
+                console.error(`Error executing javascript code ${internalValue.substring(11)}, error: ${e}`);
+                value = null;
+            }
         }
     }
+
+    // And finally, we return the value
     return value
 }
 
@@ -163,4 +174,25 @@ function promiseForEvent(el, event) {
     }
     el.addEventListener(event, handler);
     return promise;
+}
+
+/**
+ * Returns wether the object is empty or not. An object is considered empty if it is null, undefined, an empty string, an empty array or an empty object
+ * @param {*} obj, the object to check
+ * @returns true if the object is null, undefined, an empty string, an empty array or an empty object
+ */
+function isEmpty(obj) {
+    if (obj === null || obj === undefined) {
+        return true;
+    }
+    if (obj instanceof Array) {
+        return obj.length === 0;
+    }
+    if (obj instanceof Object) {
+        return Object.keys(obj).length === 0;
+    }
+    if (typeof(obj) === "string") {
+        return obj.trim() === "";
+    }
+    return false;
 }
