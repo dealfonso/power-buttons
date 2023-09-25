@@ -3,12 +3,12 @@
 This is a library that adds additional functionality to buttons (or any other html component) in a web page. The idea is to simplify some tasks that we usually do in web pages, such as adding a confirmation dialog prior to submitting a form, or verifying that some condition is met prior to executing a function.
 
 The library adds the following types of buttons:
-1. _verify_ button that verifies that one condition is valid prior to executing the function that it should execute. And if the condition is not met, show a modal dialog to inform the user and interrupt its action. It is useful for (e.g.) form verification. [see example](#verify-button)
-1. _confirm_ button that makes that a button shows a confirmation modal dialog prior to executing the function that it should execute. It is useful for (e.g.) confirm the action of submitting a form or deleting entries in a database. [see example](#confirm-button)
-1. _asynctask_ button that executes an asynchronous task prior to executing its real action, and will show a modal dialog while it is being executed. It is useful for (e.g.) executing a long task prior to submitting a form. [see example](#asynctask-button)
-1. _showmessage_ button, that shows a modal dialog with a message prior to executing its real action. It is useful for (e.g.) showing the user a message when he is submitting a form. [see example](#showmessage-button)
-1. _formset_ button, that sets the values of a form fields prior to executing its real action. It is useful for (e.g.) setting a hidden field in a form prior to submitting it, or pre-filling a form. [see example](#formset-button)
-1. _formbutton_ button, that substitutes the button by a form that will contain the button. It can also add hidden fields to the form, to be submitted along with the button. It is useful to avoid the need of creating unnecessary forms in the html code. [see example](#formbutton-button)
+1. _verify_ button that verifies that one condition is valid prior to executing the function that it should execute. And if the condition is not met, show a modal dialog to inform the user and interrupt its action. It is useful for (e.g.) form verification. ([see details](#verify-button))
+1. _confirm_ button that makes that a button shows a confirmation modal dialog prior to executing the function that it should execute. It is useful for (e.g.) confirm the action of submitting a form or deleting entries in a database. ([see details](#confirm-button))
+1. _asynctask_ button that executes an asynchronous task prior to executing its real action, and will show a modal dialog while it is being executed. It is useful for (e.g.) executing a long task prior to submitting a form. ([see details](#asynctask-button))
+1. _showmessage_ button, that shows a modal dialog with a message prior to executing its real action. It is useful for (e.g.) showing the user a message when he is submitting a form. ([see details](#showmessage-button))
+1. _formset_ button, that sets the values of a form fields prior to executing its real action. It is useful for (e.g.) setting a hidden field in a form prior to submitting it, or pre-filling a form. ([see details](#formset-button))
+1. _formbutton_ button, that substitutes the button by a form that will contain the button. It can also add hidden fields to the form, to be submitted along with the button. It is useful to avoid the need of creating unnecessary forms in the html code. ([see details](#formbutton-button))
 
 The most simple example is the next one:
 
@@ -139,7 +139,7 @@ The _verify_ button can be configured according to its specific needs. The follo
 
 > Each of the attributes can be either plain text or html code, so that it is possible to include images, links, etc.
 
-### Show Message Button
+### ShowMessage Button
 
 The _showmessage_ button is a button that shows a modal dialog with a message prior to executing its real action. It is useful for (e.g.) showing the user a message when he is submitting a form.
 
