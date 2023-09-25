@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Test PowerButtons</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.11.0/css/flag-icons.min.css"/>    
+    <script src="dist/powerbuttons.js"></script>
+      <style>
+      html, body {
+          padding: 20px;
+      }
+      span.fi {
+        border-radius: 50%;
+      }
+      div.spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border-left-color: #09f;
+        animation: spin 1s linear infinite;
+        margin: auto;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .example {
+          border: 1px solid #ccc;
+          padding: 20px;
+          margin-bottom: 20px;
+      }
+      span.code {
+          display: inline-flex;
+          font-family: monospace;
+          white-space: pre !important;
+          background-color: #eee;
+          padding: 5px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          color: #333;
+          overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Examples for PowerButtons library</h1>
+    <h2>Basic examples</h2>
+    <div class="example">
+      <h3>Basic example for the confirm button</h3>
+      <p class="small">hint: The "confirm" attribute is set to the message to show; if the user hits "accept", the action of the button will continue (i.e. show an alert).</p>
+      <button type="button" class="btn btn-primary" data-confirm="please confirm this action" onclick="alert('confirmed')">confirm</button>
+    </div>
+    <div class="example">
+      <h3>Basic example for the showmessage button</h3>
+      <p class="small">hint: The "showmessage" attribute is set to the message to show; once closed the message, the action will continue (i.e. show an alert)</p>
+      <button type="button" data-showmessage="hello world" onclick="alert('now the button continues')" class="btn btn-primary">showmessage test</button>
+    </div>
+    <div class="example">
+      <h3>Basic example for the verify button</h3>
+      <p class="small">hint: The "verify" attribute is set to the javascript code to evaluate; if the code evaluates to "true", it will continue the action (i.e. show an alert)</p>
+      <button type="button" data-verify="window.prompt('insert a text to fail') == ''" data-verify-not-verified="you introduced a text" class="btn btn-primary" onclick="alert('continue because you left the text blank')">test verify</button>
+    </div>
+    <div class="example">
+      <h3>Basic example for the asynctask button</h3>
+      <p class="small">Here we have a long running task that needs to be executed upon pressing the button. The asynctask button will execute it and in the meanwhile will show a modal dialog</p>
+      <p class="small"><span class="fw-bold">hint:</span> here we also add a data-showmessage that will execute after the task ends</p>
+      <button class="btn btn-primary"
+        data-asynctask="fetch('https://hub.dummyapis.com/delay?seconds=5', {mode:'no-cors'})"
+        data-showmessage="long task completed"
+        >async task</button>
+    </div>
+    <div class="example">
+      <h3>Basic example for the formset button</h3>
+      <p class="small">hint: The "verify" attribute is set to the javascript code to evaluate; if the code evaluates to "true", it will continue the action (i.e. show an alert)</p>
+      <form name="testform1">
+        <label class="form-label">test input 1</label>
+        <input type="text" name="testinput1" class="form-control">
+        <label class="form-label">test input 2</label>
+        <input type="text" name="testinput2" class="form-control">
+      </form>
+      <button type="button" data-formset="testform1" data-formset-testinput1="value for field 1" data-formset-testinput2="javascript:'value for field 2 taken from field 1 using javascript expression: ' + this.testinput1.value" class="btn btn-primary mt-2">test formset</button>
+    </div>
+    <div class="example">
+      <h3>Basic example for the formbutton</h3>
+      <p class="small">In this example, we are substituting the button for a form inside a button, so that the form is submitted when the button is clicked</p>
+      <p class="small"><span class="fw-bold">hint:</span> If you click the button, the button will submit a form to this page; in the submitted URL you can check that the name of the button appears as a parameter (the submit method is set to GET)</p>
+      <button type="button" class="btn btn-primary" 
+        data-formbutton
+        data-formbutton-method="get"
+        name="my-form-button"
+        value="1">form button</button>
+    </div>
+    <div class="example">
+      <h3>Using the library in other components (1)</h3>
+      <p class="small">In this example we are using the library in a component that is not a button, but a link</p>
+      <a href="https://github.com" target="_blank" data-confirm="are you sure you want to follow this link?">go to github</a>
+    </div>
+    <div class="example">
+      <h3>Using the library in other components (2)</h3>
+      <p>Now we are using the library on a image, to show a message when it is clicked</p>
+      <h5 class="text-center">Click on the image!</h5>
+      <div class="d-flex">
+        <img src="https://picsum.photos/400/200" class="mx-auto"
+          data-showmessage="Thank you for clicking">
+      </div>
+    </div>
+    <h2>Programmatical usage</h2>    
+    <div class="example">
+      <h3>Programmatical</h3>
+      <p class="small">The button is a common button, that is being converted into a confirm button programmatically</p>
+      <button type="button" class="btn btn-primary" id="testbutton">programmatical button</button>
+      <script>
+        var testbutton = document.getElementById("testbutton");
+        powerButtons('confirm', testbutton);
+      </script>
+    </div>
+    <div class="example">
+      <h3>Multiple actions</h3>
+      <p class="small">The button is getting multiple actions: first confirmation and then show a dialog</p>
+      <button type="button" class="btn btn-primary" id="multiple">multiple actions</button>
+      <script>
+        var testbutton = document.getElementById("multiple");
+        powerButtons('confirm', testbutton, { confirm: "Are you sure?"});
+        powerButtons('showmessage', testbutton, { message: "the action has been confirmed"});
+      </script>
+    </div>
+    <h2>Advanced examples</h2>
+    <div class="example">
+      <h3>Example with multiple actions</h3>
+      <p class="small">In this example we are introducing a form that we are validating, adding a derived field (hidden) and greeting the user with not even a line of code</p>
+      <form name="fullexampleform" method="get">
+        <input type="text" name="name" class="form-control" placeholder="User name">
+        <input type="text" name="email" class="form-control" placeholder="User email">
+        <input type="hidden" name="payload" value="">
+        <button type="button" class="btn btn-primary" 
+          data-verify="this.name.value != '' && this.email.value != ''" 
+          data-verify-form="fullexampleform"
+          data-verify-not-verified="please fill all the fields" 
+          data-confirm="are you sure you want to submit this form?" 
+          data-showmessage="thank you for submitting the form" 
+          data-formset="fullexampleform" data-formset-payload="javascript:JSON.stringify({name: this.name.value, email: this.email.value})">submit</button>
+      </form>
+    </div>
+    <div class="example">
+      <h3>Example for a cancellable task using AsyncTask button</h3>
+      <p>In this example we have a task that will run for 5 seconds, but it is possibile to cancel the task</p>
+      <p><span class="fw-bold">Important:</span> if the task does not finish, the dialog will not be hidden. This is to protect the execution of the task.</p>
+      <script>
+        let abortController = null;
+        async function startTask() {
+          abortController = new AbortController();
+          const signal = abortController.signal;
+          await fetch('https://hub.dummyapis.com/delay?seconds=5', {mode:'no-cors', signal})
+            .then(response => {
+              console.log("Download complete");
+            })
+            .catch(error => {
+              console.log("Download error: " + error.message);
+            });
+        }
+        function abortTask() {
+          abortController.abort();
+          console.log("Download aborted");
+        }
+      </script>
+      <button class="btn btn-primary"
+        data-asynctask="startTask()"
+        data-asynctask-cancel="abortTask()" 
+        data-asynctask-custom-content="<div class='spinner'></div>">async task</button>
+    </div>
+    <div class="example">
+      <h3>Extended example for the formbutton</h3>
+      <p class="small">The form button can also add some hidden fields, so that they are submitted along with the value of the button</p>
+      <p class="small"><span class="fw-bold">Note:</span> in this case we are adding two fields: <span class="fst-italic">x1</span> and  <span class="fst-italic">randomvalue</span>. The second is a javascript expression that will be calculated when clicking on the button</p>
+      <button type="button" class="btn btn-primary" 
+        data-showmessage="submitting the form"
+        data-formbutton 
+        data-formbutton-method="get"
+        data-formbutton-field-x1="literal value" 
+        data-formbutton-field-random-Value="javascript:Math.floor(Math.random() * 10000)">form button</button>
+    </div>
+    <div class="example">
+      <h3>Dealing with defaults (internationalization example)</h3>
+      <p class="small">In this example we are changing the default values to set it in different languages, so that each value that is not defined, will get it from the globals</p>
+      <div class="btn-group" role="group">
+      <button onclick="english()" class="btn btn-outline-primary" data-confirm="Want to set the texts of the library to english?"><span class="fi fi-gb me-1"></span>english</button>
+      <button onclick="spanish()" class="btn btn-outline-primary" data-confirm="¿Quiere utilizar los textos de la librería en español?"><span class="fi fi-es me-1"></span>español</button>
+      <button onclick="french()" class="btn btn-outline-primary" data-confirm="Vous souhaitez utiliser les textes de la librairie en français?"><span class="fi fi-fr me-1"></span>français</button>
+      </div>
+      <button class="btn btn-primary" data-confirm>test</button>
+      <script>
+      function spanish() {
+          window.powerButtons.defaults['confirm'] = {
+              confirm: "Por favor confirme la acción",
+              title: "Esta acción requiere confirmación",
+              buttonConfirm: "Confirmar",
+              buttonCancel: "Cancelar",
+          };
+      }
+      function english() {
+          window.powerButtons.defaults['confirm'] = {
+              confirm: "Please confirm your action",
+              title: "This action requires confirmation",
+              buttonConfirm: "Confirm",
+              buttonCancel: "Cancel",
+          };
+      }
+      function french() {
+          window.powerButtons.defaults['confirm'] = {
+              confirm: "Veuillez confirmer votre action",
+              title: "Cette action nécessite votre confirmation",
+              buttonConfirm: "Confirmer",
+              buttonCancel: "Annuler",
+          };
+      }
+      </script>      
+    </div>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/dealfonso/showsource@1.2.1/dist/showsource.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <script>
+    showsource.defaults.skipSelector="h1,h2,h3,h4,h5,h6,p";
+    showsource.defaults.separateElements="data-*"
+    showsource.show("div.example");
+    if (document.addEventListener) {
+      document.addEventListener("DOMContentLoaded", function () {
+        hljs.highlightAll();
+      });
+    }
+  </script>
+  </html>
