@@ -28,7 +28,7 @@ window.powerButtons = function(pluginName, els = [], options = {}) {
     return els;
 };
 
-window.powerButtons.version = '0.1.0dev';
+window.powerButtons.version = '2.0.0';
 
 // Now we add the plugin to jQuery, if it has been loaded
 if (window.$ !== undefined) {

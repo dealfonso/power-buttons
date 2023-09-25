@@ -41,7 +41,7 @@
 		}
 		return els
 	};
-	window.powerButtons.version = "0.1.0dev";
+	window.powerButtons.version = "2.0.0";
 	if (window.$ !== undefined) {
 		window.$.fn.powerButtons = function (pluginName, options = {}) {
 			window.powerButtons(pluginName, this, options);
