@@ -9,6 +9,7 @@ class Action {
 
     /**
      * Extract the values of the options in the DEFAULTS of the class from the data attributes of the element
+     * 
      *   - The data attributes are assumed to be named like data-{prefix}-{option} in the HTML element, where 
      *     {prefix} is the prefix provided (or the name of the action) and {option} is the name of the option
      *     in the DEFAULTS of the class. 
@@ -29,9 +30,10 @@ class Action {
      *       This also works for renaming the data attribute, so if we set a map { 'form': 'formset' }, to fill the 
      *       key 'form' in the options object, the data attribute to use will be data-formset.
      * 
-     * @param {*} el 
-     * @param {*} prefix 
-     * @param {*} map 
+     * @param {HTMLElement} el, the element to extract the options from
+     * @param {string} prefix, the prefix to use for the data attributes (if not provided, the name of the action will be used)
+     * @param {object} map, the map to use to map the data attribute names to the options names (if not provided, the map will be empty)
+     * 
      * @returns an object with the extracted options, with (at most) the same keys as the DEFAULTS of the class, but
      *      only those that are defined in the data attributes of the element.
      */
@@ -62,8 +64,7 @@ class Action {
     }
 
     /**
-     * Searches the element for attributes in the dataset estructure that correspond to this action, and initializes 
-     * the element, by adding the action using the class PowerButtons.
+     * Initializes the element, by registering the action to the PowerButtons library.
      * 
      *   - The data attributes are assumed to be named like data-{prefix}-{option} in the HTML element, where
      *     {prefix} is the prefix provided (or the name of the action) and {option} is the name of the option
@@ -74,10 +75,8 @@ class Action {
      *     the keys should be those defined in the DEFAULTS of the class.
      *   - The map is used to map the data attribute names to the options names (see `extractOptions` for more info).
      * 
-     * @param {*} values, the specific values to use for the initialization appart from the default ones
-     * @param {*} prefix, the prefix to use for the data attribute (defaults to the name of the action in lowercase)
-     * @param {*} map, a map of the data attribute names to the options names; if not provided, it will be assumed 
-     *                 that the data attribute names are the same as the options names using the camelCase convention
+     * @param {HTMLElement} el, the element to initialize
+     * @param {object} values, the specific values to use for the initialization appart from the default ones
      */
     static initialize(el, values = {}) {
         PowerButtons.addAction(el, Object.assign({type: this.NAME.toLowerCase()},
@@ -87,7 +86,8 @@ class Action {
     /**
      * Searches for any element with a data-{name} attribute, extract the values from the dataset (if any) and initializes 
      *  it using the `initialize` method. (see `initialize` for more info).
-     * @param {*} values, the specific values to use for the initialization appart from the default ones; if not provided,
+     * 
+     * @param {object} values, the specific values to use for the initialization appart from the default ones; if not provided,
      *                   the values will be extracted from the data attributes
      */
     static initializeAll(values = null) {
@@ -106,13 +106,12 @@ class Action {
 
     /**
      * Executes the action
-     * @param {*} options, the options to use for the execution of the action (those extracted from the data attributes and the
-     *                     user-provided ones)
-     * @param {*} onNextAction, the action to execute after the current one has finished (i.e. to be executed to get to the next
-     *                          action in the process)
-     * @param {*} onCancelActions, the actions to execute if the user cancels the current action (i.e. to stop executing actions)
+     * @param {HTMLElement} el, the element that triggered the action (i.e. the element that has the data-{name} attribute)
+     * @param {object} options, the options to use for the execution of the action (those extracted from the data attributes and the user-provided ones)
+     * @param {function} onNextAction, the action to execute after the current one has finished (i.e. to be executed to get to the next action in the process)
+     * @param {function} onCancelActions, the actions to execute if the user cancels the current action (i.e. to stop executing actions)
      */
-    static execute(options, onNextAction, onCancelActions) {
+    static execute(el, options, onNextAction, onCancelActions) {
         throw new Error("The execute method must be implemented by the derived class");
     }
 }

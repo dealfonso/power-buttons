@@ -26,16 +26,7 @@ class ActionConfirm extends Action {
         return options;
     }
 
-
-    /**
-     * Executes the action
-     * @param {*} options, the options to use for the execution of the action (those extracted from the data attributes and the
-     *                     user-provided ones)
-     * @param {*} onNextAction, the action to execute after the current one has finished (i.e. to be executed to get to the next
-     *                          action in the process)
-     * @param {*} onCancelActions, the actions to execute if the user cancels the current action (i.e. to stop executing actions)
-     */
-    static execute(options, onNextAction, onCancelActions) {
+    static execute(el, options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
         let settings = PowerButtons.getActionSettings(this, options);
 

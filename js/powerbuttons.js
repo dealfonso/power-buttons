@@ -166,7 +166,7 @@ class PowerButtons {
         if (action === undefined) {
             throw `The action ${currentActionSettings.type} is not registered`;
         }
-        action.execute(currentActionSettings, onNextAction, () => this.reset());
+        action.execute(this.el, currentActionSettings, onNextAction, () => this.reset());
     }
 
     /**

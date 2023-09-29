@@ -25,7 +25,7 @@ class ActionAsyncTask extends Action {
         return super.extractOptions(el, prefix, { task: "asynctask" });
     }
     
-    static execute(options, onNextAction, onCancelActions) {
+    static execute(el, options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
         let settings = PowerButtons.getActionSettings(this, options);
 
