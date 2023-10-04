@@ -28,7 +28,10 @@ window.powerButtons = function(pluginName, els = [], options = {}) {
     return els;
 };
 
-window.powerButtons.version = '2.0.0';
+window.powerButtons.version = '2.0.1';
+window.powerButtons.plugins = function() {
+    return Object.keys(PowerButtons.actionsRegistered);
+}
 
 // Now we add the plugin to jQuery, if it has been loaded
 if (window.$ !== undefined) {
@@ -37,4 +40,5 @@ if (window.$ !== undefined) {
         return this;
     }
     window.$.fn.powerButtons.version = window.powerButtons.version;
+    window.$.fn.powerButtons.plugins = window.powerButtons.plugins;
 }

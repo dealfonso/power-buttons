@@ -70,7 +70,7 @@ You can use this library directly from jsdelivr CDN
 
 # Using
 
-It is possible to use _jsconfirm-buttons_ in a declarative way (i.e. including parameters in the html5 tags), or programmatically in a script.
+It is possible to use _PowerButtons_ in a declarative way (i.e. including parameters in the html5 tags), or programmatically in a script.
 
 ## Using the library in a declarative way
 
