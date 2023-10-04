@@ -54,6 +54,7 @@ Have in mind that the execution of the cancellation code will not make the dialo
 E.g. the next code is a very simple example of a cancellation-aware function:
 
 .. code-block:: html
+    
     <script>
     var abort = null;
     function runningtask() {
