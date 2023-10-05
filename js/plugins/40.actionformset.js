@@ -43,39 +43,62 @@ class ActionFormset extends Action {
         // We merge the options with the defaults to get a valid settings object
         let settings = PowerButtons.getActionSettings(this, options);
 
-        // Get the form to set using the provided selector (or name)
-        let formToSet = searchForm(settings.form);
-        if (formToSet === null) {
-            console.error(`Form not found ${settings.form}`);
-            return;
+        let formToSet = null;
+        let inputFields = [];
+        let elements = [];
+
+        if (settings.form == "") {
+            // This is a special shortcut to
+            // 1. set the form to the form that contains the button
+            // 2. set the value of an input that is not in any form
+
+            console.debug("form is empty");
+
+            if (el.form !== null) {
+                // The element is in a form, so we'll set the form to the form that contains the button
+                formToSet = el.form;
+            } else {
+                // The element is not in a form, so we are dealing with the inputs that are not in a form
+                elements = Array.from(document.querySelectorAll('input')).filter(input => input.form === null);
+            }
+        } else {
+            // We'll get the form to set using the provided selector (or name)
+            formToSet = searchForm(settings.form);
+            if (formToSet === null) {
+                console.error(`Form not found ${settings.form}`);
+                return;
+            }
         }
 
+        // If there is a form, we'll get the input fields
+        if (formToSet !== null) {
+            elements = Array.from(formToSet.elements);
+        }
+
+        // Now use the lowercase name and id of the input fields to create a map
+        //
         // As the dataset attributes are always in camelCase, the name of the fields to set is case insensitive. So
-        //   in the form we may have the field <input name="Name"> and in the button the attribute data-setform-name="John"
-        //   We'll do this by creating a map of the field name in lowercase and the field name in the form, and then
-        //   we'll use the map to set the values.
+        //   in the form we may have the field <input name="Name"> but in the button the attribute should be data-setform-name="John"
         //
         // This mechanism restricts the existence of the same field name for different fields in the form, with different
         //   case. For example, if we have the fields <input name="Name"> and <input name="name">, we'll set the value for
         //   the last one, as the map will have the reference to it.
-        let nameMap = {};
-        for (var i = 0; i < formToSet.elements.length; i++) {
-            let element = formToSet.elements[i];
-
+        elements.forEach(element => {
             if (element.name !== '') {
-                nameMap[element.name.toLocaleLowerCase()] = element.name;
+                inputFields[element.name.toLocaleLowerCase()] = element;
             }
-            // In a form, the same input is indexed both by name or by id, but assigning a value is done in the same way
             if (element.id !== '') {
-                nameMap[element.id.toLocaleLowerCase()] = element.id;
+                inputFields[element.id.toLocaleLowerCase()] = element;
             }
-        }
-        for (var field in settings.fields) {
-            if (nameMap[field] !== undefined) {
+        });
+
+        // Now we'll set the values of the fields
+        for (let field in settings.fields) {
+            if (inputFields[field] !== undefined) {
                 let value = settings.fields[field];
 
-                // Get the value with the support for javascript expressions
-                let result = getValueWithJavascriptSupport(value, formToSet);
+                // Get the value with the support for javascript expressions; if the form is null, we'll use the inputFields
+                let result = getValueWithJavascriptSupport(value, formToSet !== null ? formToSet : inputFields);
                 if (typeof(result) === 'function') {
                     try {
                         result = result();
@@ -84,7 +107,7 @@ class ActionFormset extends Action {
                         continue;
                     }
                 }
-                formToSet[nameMap[field]].value = result;
+                inputFields[field].value = result;
             }
         }
 
