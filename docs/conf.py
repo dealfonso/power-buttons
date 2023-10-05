@@ -9,7 +9,8 @@
 project = 'PowerButtons'
 copyright = '2023, Carlos A. <https://github.com/dealfonso>'
 author = 'Carlos A. <https://github.com/dealfonso>'
-release = 'Apache 2.0'
+version = '2.0'
+release = '2.0.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
