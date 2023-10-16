@@ -7,8 +7,6 @@ class PowerButtons {
      * @param action, the action to be registered
      */
     static registerAction(action) {
-        console.debug(`Registering action ${action.NAME.toLowerCase()}`);
-
         this.actionsRegistered[action.NAME.toLowerCase()] = action;
 
         if (window.powerButtons === undefined) {

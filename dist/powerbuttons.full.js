@@ -41,13 +41,17 @@
 		}
 		return els
 	};
-	window.powerButtons.version = "2.0.0";
+	window.powerButtons.version = "2.0.1";
+	window.powerButtons.plugins = function () {
+		return Object.keys(PowerButtons.actionsRegistered)
+	};
 	if (window.$ !== undefined) {
 		window.$.fn.powerButtons = function (pluginName, options = {}) {
 			window.powerButtons(pluginName, this, options);
 			return this
 		};
-		window.$.fn.powerButtons.version = window.powerButtons.version
+		window.$.fn.powerButtons.version = window.powerButtons.version;
+		window.$.fn.powerButtons.plugins = window.powerButtons.plugins
 	}
 
 	function pascalToSnake(str) {
@@ -516,7 +520,6 @@
 	class PowerButtons {
 		static actionsRegistered = {};
 		static registerAction(action) {
-			console.debug(`Registering action ${action.NAME.toLowerCase()}`);
 			this.actionsRegistered[action.NAME.toLowerCase()] = action;
 			if (window.powerButtons === undefined) {
 				window.powerButtons = {}
@@ -600,7 +603,7 @@
 			if (action === undefined) {
 				throw `The action ${currentActionSettings.type} is not registered`
 			}
-			action.execute(currentActionSettings, onNextAction, () => this.reset())
+			action.execute(this.el, currentActionSettings, onNextAction, () => this.reset())
 		}
 		reset() {
 			this.current_action = 0
@@ -665,7 +668,7 @@
 				this.initialize(el, options)
 			}
 		}
-		static execute(options, onNextAction, onCancelActions) {
+		static execute(el, options, onNextAction, onCancelActions) {
 			throw new Error("The execute method must be implemented by the derived class")
 		}
 	}
@@ -686,7 +689,7 @@
 			header: true,
 			footer: true
 		};
-		static execute(options, onNextAction, onCancelActions) {
+		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
 			let result = null;
 			let bindObject = searchForm(settings.form);
@@ -775,7 +778,7 @@
 			}
 			return options
 		}
-		static execute(options, onNextAction, onCancelActions) {
+		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
 			let dialog = Dialog.create({
 				title: settings.title,
@@ -816,7 +819,7 @@
 				task: "asynctask"
 			})
 		}
-		static execute(options, onNextAction, onCancelActions) {
+		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
 			if (settings.task === null) {
 				console.error("The task to execute cannot be null");
@@ -884,7 +887,7 @@
 			header: true,
 			footer: true
 		};
-		static execute(options, onNextAction, onCancelActions) {
+		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
 			let dialog = Dialog.create({
 				title: settings.title,
@@ -934,27 +937,39 @@
 			Object.assign(options.fields, fields);
 			return options
 		}
-		static execute(options, onNextAction, onCancelActions) {
+		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
-			let formToSet = searchForm(settings.form);
-			if (formToSet === null) {
-				console.error(`Form not found ${settings.form}`);
-				return
+			let formToSet = null;
+			let inputFields = [];
+			let elements = [];
+			if (settings.form == "") {
+				if (el.form !== null) {
+					formToSet = el.form
+				} else {
+					elements = Array.from(document.querySelectorAll("input")).filter(input => input.form === null)
+				}
+			} else {
+				formToSet = searchForm(settings.form);
+				if (formToSet === null) {
+					console.error(`Form not found ${settings.form}`);
+					return
+				}
 			}
-			let nameMap = {};
-			for (var i = 0; i < formToSet.elements.length; i++) {
-				let element = formToSet.elements[i];
+			if (formToSet !== null) {
+				elements = Array.from(formToSet.elements)
+			}
+			elements.forEach(element => {
 				if (element.name !== "") {
-					nameMap[element.name.toLocaleLowerCase()] = element.name
+					inputFields[element.name.toLocaleLowerCase()] = element
 				}
 				if (element.id !== "") {
-					nameMap[element.id.toLocaleLowerCase()] = element.id
+					inputFields[element.id.toLocaleLowerCase()] = element
 				}
-			}
-			for (var field in settings.fields) {
-				if (nameMap[field] !== undefined) {
+			});
+			for (let field in settings.fields) {
+				if (inputFields[field] !== undefined) {
 					let value = settings.fields[field];
-					let result = getValueWithJavascriptSupport(value, formToSet);
+					let result = getValueWithJavascriptSupport(value, formToSet !== null ? formToSet : inputFields);
 					if (typeof result === "function") {
 						try {
 							result = result()
@@ -963,7 +978,7 @@
 							continue
 						}
 					}
-					formToSet[nameMap[field]].value = result
+					inputFields[field].value = result
 				}
 			}
 			onNextAction()
@@ -1001,7 +1016,6 @@
 						fieldname = pascalToSnake(fieldname);
 						break;
 					case "camel":
-						console.log(fieldname, pascalToCamel(fieldname));
 						fieldname = pascalToCamel(fieldname);
 						break;
 					case "pascal":
@@ -1058,7 +1072,7 @@
 				super.initialize(el, settings)
 			}
 		}
-		static execute(options, onNextAction, onCancelActions) {
+		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
 			let error = false;
 			for (let fieldName in settings.fields) {
