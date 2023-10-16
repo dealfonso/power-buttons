@@ -7,8 +7,8 @@ Welcome to PowerButtons's documentation!
 ========================================
 
 .. image:: img/power-buttons.png
-        :alt: PowerButtons logo
-        :width: 400
+   :alt: PowerButtons logo
+   :width: 400
 
 **PowerButtons** is a library that adds additional functionality to buttons (or any other html component) in a web page. The idea is to simplify some tasks that we usually do in web pages, such as adding a confirmation dialog prior to submitting a form, or verifying that some condition is met prior to executing a function.
 
@@ -25,6 +25,10 @@ And then the effect is that when the user clicks the button, a confirmation dial
         :width: 400
 
 The library also includes other type of buttons, such as *verify button*, *asynctask button*, *showmessage button*, *formset button*, *formbutton button*, etc. Please check the :ref:`button list` section for a complete list.
+
+.. note::
+
+   You can get the source of **PowerButtons** at `GitHub <https://github.com/dealfonso/power-buttons>`_.
 
 .. toctree::
    :maxdepth: 2

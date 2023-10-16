@@ -57,3 +57,8 @@ And then you can use it in your html file:
 .. code-block:: html
 
     <script src="/path/to/my/html/folder/power-buttons.js"></script>
+
+.. note::
+
+   You can get the source of **PowerButtons** at `GitHub <https://github.com/dealfonso/power-buttons>`_.
+

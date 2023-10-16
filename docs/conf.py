@@ -25,6 +25,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
+    'sphinx_rtd_theme',
 ]
 
 intersphinx_mapping = {
@@ -45,3 +46,46 @@ html_static_path = ['_static']
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
+
+# Place in docs/_ext
+# 
+# Add to conf.py:
+#   sys.path.append(os.path.abspath("./_ext")
+#   extensions = [
+#       # ...
+#       'fontawesome',
+#   ]
+#
+
+
+# Make sure that the fontawesome CSS file is included in the build
+html_css_files = [
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+]
+
+from docutils.nodes import emphasis
+from docutils.parsers.rst.roles import set_classes
+
+def fa(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    """Adds an `:fa:` role to docs to insert an icon from Font Awesome.
+
+    The extension assumes that fontawesome assets are already included in the
+    document build, for example by using the `sphinx_rtd_theme` theme, which
+    uses Font Awesome as well.
+    """
+    classes = ["fa"]
+    for x in text.split(" "):
+        print(x)
+        if x.startswith("fa-") or x.startswith("fas-") or x.startswith("far-") or x.startswith("fal-") or x.startswith("fab-"):
+            classes.append(x)
+        else:
+            classes.append('fa-{}'.format(x))
+
+    options.update({'classes': classes})
+    set_classes(options)
+    node = emphasis(**options)
+    return [node], []
+
+def setup(app):
+    app.add_role('fa', fa)
+    return {'version': "0.1"}
