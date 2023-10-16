@@ -28,7 +28,10 @@ window.powerButtons = function(pluginName, els = [], options = {}) {
     return els;
 };
 
-window.powerButtons.version = '2.0.0';
+window.powerButtons.version = '2.0.1';
+window.powerButtons.plugins = function() {
+    return Object.keys(PowerButtons.actionsRegistered);
+}
 
 // Now we add the plugin to jQuery, if it has been loaded
 if (window.$ !== undefined) {
@@ -37,6 +40,7 @@ if (window.$ !== undefined) {
         return this;
     }
     window.$.fn.powerButtons.version = window.powerButtons.version;
+    window.$.fn.powerButtons.plugins = window.powerButtons.plugins;
 }function pascalToSnake(str) { return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).replace(/^_*/,'') };
 function pascalToKebab(str) { return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`).replace(/^-*/,''); }
 function snakeCaseToCamel(str) { return str.replace(/-([a-z])/g, g => g[1].toUpperCase()); }
@@ -635,8 +639,6 @@ Object.assign(window.powerButtons.utils, {
      * @param action, the action to be registered
      */
     static registerAction(action) {
-        console.debug(`Registering action ${action.NAME.toLowerCase()}`);
-
         this.actionsRegistered[action.NAME.toLowerCase()] = action;
 
         if (window.powerButtons === undefined) {
@@ -794,7 +796,7 @@ Object.assign(window.powerButtons.utils, {
         if (action === undefined) {
             throw `The action ${currentActionSettings.type} is not registered`;
         }
-        action.execute(currentActionSettings, onNextAction, () => this.reset());
+        action.execute(this.el, currentActionSettings, onNextAction, () => this.reset());
     }
 
     /**
@@ -836,6 +838,7 @@ class Action {
 
     /**
      * Extract the values of the options in the DEFAULTS of the class from the data attributes of the element
+     * 
      *   - The data attributes are assumed to be named like data-{prefix}-{option} in the HTML element, where 
      *     {prefix} is the prefix provided (or the name of the action) and {option} is the name of the option
      *     in the DEFAULTS of the class. 
@@ -856,9 +859,10 @@ class Action {
      *       This also works for renaming the data attribute, so if we set a map { 'form': 'formset' }, to fill the 
      *       key 'form' in the options object, the data attribute to use will be data-formset.
      * 
-     * @param {*} el 
-     * @param {*} prefix 
-     * @param {*} map 
+     * @param {HTMLElement} el, the element to extract the options from
+     * @param {string} prefix, the prefix to use for the data attributes (if not provided, the name of the action will be used)
+     * @param {object} map, the map to use to map the data attribute names to the options names (if not provided, the map will be empty)
+     * 
      * @returns an object with the extracted options, with (at most) the same keys as the DEFAULTS of the class, but
      *      only those that are defined in the data attributes of the element.
      */
@@ -889,8 +893,7 @@ class Action {
     }
 
     /**
-     * Searches the element for attributes in the dataset estructure that correspond to this action, and initializes 
-     * the element, by adding the action using the class PowerButtons.
+     * Initializes the element, by registering the action to the PowerButtons library.
      * 
      *   - The data attributes are assumed to be named like data-{prefix}-{option} in the HTML element, where
      *     {prefix} is the prefix provided (or the name of the action) and {option} is the name of the option
@@ -901,10 +904,8 @@ class Action {
      *     the keys should be those defined in the DEFAULTS of the class.
      *   - The map is used to map the data attribute names to the options names (see `extractOptions` for more info).
      * 
-     * @param {*} values, the specific values to use for the initialization appart from the default ones
-     * @param {*} prefix, the prefix to use for the data attribute (defaults to the name of the action in lowercase)
-     * @param {*} map, a map of the data attribute names to the options names; if not provided, it will be assumed 
-     *                 that the data attribute names are the same as the options names using the camelCase convention
+     * @param {HTMLElement} el, the element to initialize
+     * @param {object} values, the specific values to use for the initialization appart from the default ones
      */
     static initialize(el, values = {}) {
         PowerButtons.addAction(el, Object.assign({type: this.NAME.toLowerCase()},
@@ -914,7 +915,8 @@ class Action {
     /**
      * Searches for any element with a data-{name} attribute, extract the values from the dataset (if any) and initializes 
      *  it using the `initialize` method. (see `initialize` for more info).
-     * @param {*} values, the specific values to use for the initialization appart from the default ones; if not provided,
+     * 
+     * @param {object} values, the specific values to use for the initialization appart from the default ones; if not provided,
      *                   the values will be extracted from the data attributes
      */
     static initializeAll(values = null) {
@@ -933,13 +935,12 @@ class Action {
 
     /**
      * Executes the action
-     * @param {*} options, the options to use for the execution of the action (those extracted from the data attributes and the
-     *                     user-provided ones)
-     * @param {*} onNextAction, the action to execute after the current one has finished (i.e. to be executed to get to the next
-     *                          action in the process)
-     * @param {*} onCancelActions, the actions to execute if the user cancels the current action (i.e. to stop executing actions)
+     * @param {HTMLElement} el, the element that triggered the action (i.e. the element that has the data-{name} attribute)
+     * @param {object} options, the options to use for the execution of the action (those extracted from the data attributes and the user-provided ones)
+     * @param {function} onNextAction, the action to execute after the current one has finished (i.e. to be executed to get to the next action in the process)
+     * @param {function} onCancelActions, the actions to execute if the user cancels the current action (i.e. to stop executing actions)
      */
-    static execute(options, onNextAction, onCancelActions) {
+    static execute(el, options, onNextAction, onCancelActions) {
         throw new Error("The execute method must be implemented by the derived class");
     }
 }
@@ -975,7 +976,7 @@ class ActionVerify extends Action {
         footer: true
     }
 
-    static execute(options, onNextAction, onCancelActions) {
+    static execute(el, options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
         let settings = PowerButtons.getActionSettings(this, options);
 
@@ -1079,16 +1080,7 @@ ActionVerify.register();class ActionConfirm extends Action {
         return options;
     }
 
-
-    /**
-     * Executes the action
-     * @param {*} options, the options to use for the execution of the action (those extracted from the data attributes and the
-     *                     user-provided ones)
-     * @param {*} onNextAction, the action to execute after the current one has finished (i.e. to be executed to get to the next
-     *                          action in the process)
-     * @param {*} onCancelActions, the actions to execute if the user cancels the current action (i.e. to stop executing actions)
-     */
-    static execute(options, onNextAction, onCancelActions) {
+    static execute(el, options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
         let settings = PowerButtons.getActionSettings(this, options);
 
@@ -1146,7 +1138,7 @@ ActionConfirm.register();class ActionAsyncTask extends Action {
         return super.extractOptions(el, prefix, { task: "asynctask" });
     }
     
-    static execute(options, onNextAction, onCancelActions) {
+    static execute(el, options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
         let settings = PowerButtons.getActionSettings(this, options);
 
@@ -1236,7 +1228,7 @@ ActionAsyncTask.register();class ActionShowMessage extends Action {
         footer: true
     }
 
-    static execute(options, onNextAction, onCancelActions) {
+    static execute(el, options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
         let settings = PowerButtons.getActionSettings(this, options);
 
@@ -1302,43 +1294,63 @@ ActionShowMessage.register();class ActionFormset extends Action {
         return options;
     }
 
-    static execute(options, onNextAction, onCancelActions) {
+    static execute(el, options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
         let settings = PowerButtons.getActionSettings(this, options);
 
-        // Get the form to set using the provided selector (or name)
-        let formToSet = searchForm(settings.form);
-        if (formToSet === null) {
-            console.error(`Form not found ${settings.form}`);
-            return;
+        let formToSet = null;
+        let inputFields = [];
+        let elements = [];
+
+        if (settings.form == "") {
+            // This is a special shortcut to
+            // 1. set the form to the form that contains the button
+            // 2. set the value of an input that is not in any form
+            if (el.form !== null) {
+                // The element is in a form, so we'll set the form to the form that contains the button
+                formToSet = el.form;
+            } else {
+                // The element is not in a form, so we are dealing with the inputs that are not in a form
+                elements = Array.from(document.querySelectorAll('input')).filter(input => input.form === null);
+            }
+        } else {
+            // We'll get the form to set using the provided selector (or name)
+            formToSet = searchForm(settings.form);
+            if (formToSet === null) {
+                console.error(`Form not found ${settings.form}`);
+                return;
+            }
         }
 
+        // If there is a form, we'll get the input fields
+        if (formToSet !== null) {
+            elements = Array.from(formToSet.elements);
+        }
+
+        // Now use the lowercase name and id of the input fields to create a map
+        //
         // As the dataset attributes are always in camelCase, the name of the fields to set is case insensitive. So
-        //   in the form we may have the field <input name="Name"> and in the button the attribute data-setform-name="John"
-        //   We'll do this by creating a map of the field name in lowercase and the field name in the form, and then
-        //   we'll use the map to set the values.
+        //   in the form we may have the field <input name="Name"> but in the button the attribute should be data-setform-name="John"
         //
         // This mechanism restricts the existence of the same field name for different fields in the form, with different
         //   case. For example, if we have the fields <input name="Name"> and <input name="name">, we'll set the value for
         //   the last one, as the map will have the reference to it.
-        let nameMap = {};
-        for (var i = 0; i < formToSet.elements.length; i++) {
-            let element = formToSet.elements[i];
-
+        elements.forEach(element => {
             if (element.name !== '') {
-                nameMap[element.name.toLocaleLowerCase()] = element.name;
+                inputFields[element.name.toLocaleLowerCase()] = element;
             }
-            // In a form, the same input is indexed both by name or by id, but assigning a value is done in the same way
             if (element.id !== '') {
-                nameMap[element.id.toLocaleLowerCase()] = element.id;
+                inputFields[element.id.toLocaleLowerCase()] = element;
             }
-        }
-        for (var field in settings.fields) {
-            if (nameMap[field] !== undefined) {
+        });
+
+        // Now we'll set the values of the fields
+        for (let field in settings.fields) {
+            if (inputFields[field] !== undefined) {
                 let value = settings.fields[field];
 
-                // Get the value with the support for javascript expressions
-                let result = getValueWithJavascriptSupport(value, formToSet);
+                // Get the value with the support for javascript expressions; if the form is null, we'll use the inputFields
+                let result = getValueWithJavascriptSupport(value, formToSet !== null ? formToSet : inputFields);
                 if (typeof(result) === 'function') {
                     try {
                         result = result();
@@ -1347,7 +1359,7 @@ ActionShowMessage.register();class ActionFormset extends Action {
                         continue;
                     }
                 }
-                formToSet[nameMap[field]].value = result;
+                inputFields[field].value = result;
             }
         }
 
@@ -1401,7 +1413,6 @@ ActionFormset.register();class ActionFormButton extends Action {
                         fieldname = pascalToSnake(fieldname);
                         break;
                     case 'camel':
-                        console.log(fieldname, pascalToCamel(fieldname));
                         fieldname = pascalToCamel(fieldname);
                         break;
                     case 'pascal':
@@ -1489,7 +1500,7 @@ ActionFormset.register();class ActionFormButton extends Action {
         }
     }
 
-    static execute(options, onNextAction, onCancelActions) {
+    static execute(el, options, onNextAction, onCancelActions) {
         // We merge the options with the defaults to get a valid settings object
         let settings = PowerButtons.getActionSettings(this, options);
 

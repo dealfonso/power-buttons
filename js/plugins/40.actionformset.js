@@ -51,9 +51,6 @@ class ActionFormset extends Action {
             // This is a special shortcut to
             // 1. set the form to the form that contains the button
             // 2. set the value of an input that is not in any form
-
-            console.debug("form is empty");
-
             if (el.form !== null) {
                 // The element is in a form, so we'll set the form to the form that contains the button
                 formToSet = el.form;

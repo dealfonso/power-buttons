@@ -43,7 +43,6 @@ class ActionFormButton extends Action {
                         fieldname = pascalToSnake(fieldname);
                         break;
                     case 'camel':
-                        console.log(fieldname, pascalToCamel(fieldname));
                         fieldname = pascalToCamel(fieldname);
                         break;
                     case 'pascal':
