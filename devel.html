@@ -90,13 +90,13 @@
     <div class="example">
       <h3>Basic example for the formset button</h3>
       <p class="small">hint: The "verify" attribute is set to the javascript code to evaluate; if the code evaluates to "true", it will continue the action (i.e. show an alert)</p>
-      <form name="testform1">
+      <form>
         <label class="form-label">test input 1</label>
         <input type="text" name="testinput1" class="form-control">
         <label class="form-label">test input 2</label>
         <input type="text" name="testinput2" class="form-control">
+        <button type="button" data-formset data-formset-testinput1="value for field 1" data-formset-testinput2="javascript:'value for field 2 taken from field 1 using javascript expression: ' + this.testinput1.value" class="btn btn-primary mt-2">test formset</button>
       </form>
-      <button type="button" data-formset="testform1" data-formset-testinput1="value for field 1" data-formset-testinput2="javascript:'value for field 2 taken from field 1 using javascript expression: ' + this.testinput1.value" class="btn btn-primary mt-2">test formset</button>
     </div>
     <div class="example">
       <h3>Basic example for the formbutton</h3>
@@ -232,6 +232,25 @@
           };
       }
       </script>      
+    </div>
+    <h2>Other examples</h2>
+    <div class="example">
+      <h3>Formset button with external form</h3>
+      <form name="testform1">
+        <label class="form-label">test input 1</label>
+        <input type="text" name="testinput1" class="form-control">
+        <label class="form-label">test input 2</label>
+        <input type="text" name="testinput2" class="form-control">
+      </form>
+      <button type="button" data-formset="testform1" data-formset-testinput1="value for field 1" data-formset-testinput2="javascript:'value for field 2 taken from field 1 using javascript expression: ' + this.testinput1.value" class="btn btn-primary mt-2">test formset</button>
+    </div>
+    <div class="example">
+      <h3>Formset button with fields outside a form</h3>
+      <label class="form-label">test input 1</label>
+      <input type="text" name="testinput1" class="form-control">
+      <label class="form-label">test input 2</label>
+      <input type="text" name="testinput2" class="form-control">
+      <button type="button" data-formset data-formset-testinput1="value for field 1" data-formset-testinput2="javascript:'value for field 2 taken from field 1 using javascript expression: ' + this.testinput1.value" class="btn btn-primary mt-2">test formset</button>
     </div>
   </body>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
