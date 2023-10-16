@@ -1,4 +1,7 @@
+![PowerButtons Logo](img/power-buttons.png)
+
 # PowerButtons
+![GitHub license](https://img.shields.io/github/license/dealfonso/power-buttons.svg) ![GitHub release](https://img.shields.io/github/release/dealfonso/power-buttons.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/dealfonso/power-buttons.svg) ![Minified Size](https://img.shields.io/github/size/dealfonso/power-buttons/dist/powerbuttons.min.js)
 
 This is a library that adds additional functionality to buttons (or any other html component) in a web page. The idea is to simplify some tasks that we usually do in web pages, such as adding a confirmation dialog prior to submitting a form, or verifying that some condition is met prior to executing a function.
 
@@ -68,13 +71,15 @@ You can use this library directly from jsdelivr CDN
 <script src="https://cdn.jsdelivr.net/gh/dealfonso/jsconfirm-buttons@power-buttons/dist/powerbuttons.js"></script>
 ```
 
-# Using
+# Documentation
 
 It is possible to use _PowerButtons_ in a declarative way (i.e. including parameters in the html5 tags), or programmatically in a script.
 
 ## Using the library in a declarative way
 
 I prefer to use the library in a declarative way, so that I can add the functionality to the buttons without writing any javascript code. The library adds the functionality to the buttons by means of html5 attributes.
+
+> Please get to [https://powerbuttons.readthedocs.io/](https://powerbuttons.readthedocs.io/) for the most up-to-date documentation.
 
 ### Confirm Button
 
@@ -92,19 +97,17 @@ Once the _Confirm_ button is clicked, the dialog will be closed and the activity
 
 In case that the dialog is closed by other means but the _Confirm_ button, the activity in the button will not continue (i.e. the submission will be cancelled, and any other click handler will not be executed).
 
-#### Options
+The default values for the options are the next:
 
-The _confirm_ button can be configured according to its specific needs. The following attributes can be set in the html5 tags:
-
-- `data-confirm`: is the message to show in the modal dialog. The text will be placed as _raw html_ in the dialog. It defaults to _Please confirm this action_.
-- `data-confirm-custom-content`: is a custom content to show under the message. It defaults to _null_.
-- `data-confirm-title`: is the title of the modal dialog. It defaults to _The action requires confirmation_.
-- `data-confirm-button-confirm`: is the content for the confirmation button. It defaults to _Confirm_.
-- `data-confirm-button-cancel`: is the content for the cancel button. It defaults to _Cancel_.
-- `data-confirm-button-close`: if set to anything except _false_, a close button will be shown in the modal dialog. It defaults to _true_.
-- `data-confirm-escape-key`: if set to anything except _false_, the dialog can be cancelled using the escape key or pressing outside the dialog.
-
-> Each of the attributes can be either plain text or html code, so that it is possible to include images, links, etc.
+```html
+<button data-confirm="Please confirm this action"
+    data-confirm-custom-content=""
+    data-confirm-title="The action requires confirmation"
+    data-confirm-button-confirm="Confirm"
+    data-confirm-button-cancel="Cancel"
+    data-confirm-button-close="true"
+    data-confirm-escape-key="true">clickme</button>
+```
 
 ### Verify Button
 
@@ -119,25 +122,23 @@ Then, whenever the button is pushed, the code inside the `data-verify` attribute
 
 > In the case of the example, the code will show a prompt dialog to the user, and if the user does not leave the text blank, the verification will fail and the default action will be cancelled.
 
-#### Options
+The default values for the options of the _verify_ button are the next:
 
-The _verify_ button can be configured according to its specific needs. The following attributes can be set in the html5 tags:
-
-- `data-verify`: is the javascript code to evaluate. If it returns _true_, the verification will succeed.
-- `data-verify-form`: is the selector for the form to verify (it can also be any html5 object in the DOM). If it is set, the function will be evaluated in the context of the form (i.e. `this` will be the form).
-- `data-verify-verified`: is the message to show in the modal dialog if the verification succeeds. If set to null, no dialog will be shown. It defaults to _null_.
-- `data-verify-not-verified`: is the message to show in the modal dialog if the verification fails. If set to null, no dialog will be shown. It defaults to _The condition for this action is not met_.
-- `data-verify-custom-content-verified`: is a custom content to show to the user under the message when verified. It defaults to _null_.
-- `data-verify-custom-content-not-verified`: is a custom content to show to the user under the message when not verified. It defaults to _null_.
-- `data-verify-title-verified`: is the title of the modal dialog if the verification succeeds. It defaults to _null_.
-- `data-verify-title-not-verified`: is the title of the modal dialog if the verification fails. It defaults to _The action requires verification_.
-- `data-verify-button-accept`: is the content for the confirmation button. It defaults to _Accept_.
-- `data-verify-button-close`: if set to anything except _false_, a close button will be shown in the modal dialog. It defaults to _false_.
-- `data-verify-escape-key`: if set to anything except _false_, the dialog can be cancelled using the escape key or pressing outside the dialog. It defaults to _true_.
-- `data-verify-header`: if set to anything except _false_, the header of the dialog will be shown. If not shown, the contents of the header (i.e. the close button) will be placed in the body of the dialog. It defaults to _true_. 
-- `data-verify-footer`: if set to anything except _false_, the footer of the dialog will be shown. If not shown, the contents of the footer (i.e. the buttons) will be placed in the body of the dialog. It defaults to _true_.
-
-> Each of the attributes can be either plain text or html code, so that it is possible to include images, links, etc.
+```html
+<button data-verify=""
+    data-verify-form=""
+    data-verify-verified=""
+    data-verify-not-verified="The condition for this action is not met"
+    data-verify-custom-content-verified=""
+    data-verify-custom-content-not-verified=""
+    data-verify-title-verified=""
+    data-verify-title-not-verified="The action requires verification"
+    data-verify-button-accept="Accept"
+    data-verify-button-close="false"
+    data-verify-escape-key="true"
+    data-verify-header="true"
+    data-verify-footer="true">test verify</button>
+```
 
 ### ShowMessage Button
 
@@ -152,20 +153,18 @@ Then, when the button is clicked, a modal dialog will be shown with the message 
 
 > In the case of the example, the code will show a modal dialog with the message _hello world_, and once the dialog is closed, it will show an alert with the message _now the button continues_.
 
-#### Options
+The default values for the options of the _showmessage_ button are the next:
 
-The _showmessage_ button can be configured according to its specific needs. The following attributes can be set in the html5 tags:
-
-- `data-showmessage`: is the message to show in the modal dialog. It defaults to _This is a message_.
-- `data-showmessage-custom-content`: is a custom content to show under the message. It defaults to _null_.
-- `data-showmessage-button-accept`: is the content for the accept button. It defaults to _Accept_.
-- `data-showmessage-title`: is the title of the modal dialog. It defaults to _null_.
-- `data-showmessage-button-close`: if set to anything except _false_, a close button will be shown in the modal dialog. It defaults to _true_.
-- `data-showmessage-escape-key`: if set to anything except _false_, the dialog can be cancelled using the escape key or pressing outside the dialog. It defaults to _true_.
-- `data-showmessage-header`: if set to anything except _false_, the header of the dialog will be shown. If not shown, the contents of the header (i.e. the close button) will be placed in the body of the dialog. It defaults to _true_.
-- `data-showmessage-footer`: if set to anything except _false_, the footer of the dialog will be shown. If not shown, the contents of the footer (i.e. the buttons) will be placed in the body of the dialog. It defaults to _true_.
-
-> Each of the attributes can be either plain text or html code, so that it is possible to include images, links, etc.
+```html
+<button data-showmessage="This is a message"
+    data-showmessage-custom-content=""
+    data-showmessage-title=""
+    data-showmessage-button-accept="Accept"
+    data-showmessage-button-close="true"
+    data-showmessage-escape-key="true"
+    data-showmessage-header="true"
+    data-showmessage-footer="true">test showmessage</button>
+```
 
 ### FormSet Button
 
@@ -185,10 +184,6 @@ When the button is clicked, the values of the fields `testinput1` and `testinput
 Take into account that the values to set can be either plain text or javascript expressions (provided that the value to set starts with `javascript:`). These expressions will be evaluated in the context of the form (i.e. `this` will be the form), at the moment of clicking the button.
 
 > **IMPORTANT:** in javascript, the names of the dataset attributes cannot contain dashes, and also are camel cased. So the names of the fields to set are case insensitive and cannot contain dashes.
-
-#### Options
-
-The _formset_ button only accepts one fixed attribute (`data-formset`) that is the selector for the form to set (it can also be any html5 object in the DOM). The rest of the attributes are the names of the fields to set (with the prefix `data-formset-`), and the values to set in them (as in the example above).
 
 ### FormButton Button
 
@@ -210,16 +205,17 @@ This code is automatically translated into the next one:
 
 > I find that it is very useful to avoid the need of creating unnecessary forms in the html code. For example, a web app with a control panels with many buttons and each of them may submit to different urls or with different parameters.
 
-#### Options
+The default values for the options of the _formbutton_ button are the next:
 
-The _formbutton_ button can be configured according to its specific needs. The following attributes can be set in the html5 tags:
+```html
+<button data-formbutton=""
+    data-formbutton-method="post"
+    data-formbutton-form-class="formbutton"
+    data-formbutton-form-id=""
+    data-formbutton-convert-case="snake">test formbutton</button>
+```
 
-- `data-formbutton`: the URL to submit the form to. If it is not set to anything, the form will be submitted to the same URL as the current page.
-- `data-formbutton-method`: the method to use for the form. It defaults to _post_.
-- `data-formbutton-form-class`: the class to use for the form. It defaults to _formbutton_.
-- `data-formbutton-form-id`: the id to use for the form. It defaults to _null_.
-- `data-formbutton-field-*`: the additional fields to add to the form, along with their values. The name of the field is the name of the attribute without the prefix `data-formbutton-field-`. The value of the field can be either plain text or javascript expressions (provided that the value to set starts with `javascript:`). These expressions will be evaluated in the context of the form (i.e. `this` will be the form), at the moment of clicking the button.
-- `data-formbutton-convert-case`: because of how html and the DOM work, the name of the fields will arrive to the library in camel case. This attribute allows to convert the case of the field names that are being created to kebab-case, snake_case, camelCase or PascalCase. The possible values are `kebab`, `snake`, `camel` or `pascal`. It defaults to _snake_.
+In the tag you can also add multiple `data-formbutton-field-*` which are the additional fields to add to the form, along with their values. The name of the field is the name of the attribute without the prefix `data-formbutton-field-`. The value of the field can be either plain text or javascript expressions (provided that the value to set starts with `javascript:`). These expressions will be evaluated in the context of the form (i.e. `this` will be the form), at the moment of clicking the button.
 
 ### AsyncTask Button
 
@@ -233,6 +229,19 @@ The basic syntax to use this plugin is to include the attribute _data-asynctask_
 When the button is clicked, the code inside the `data-asynctask` attribute will be evaluated and, the modal dialog will be shown until the evaluation of the code finalizes.
 
 > In the case of the example, the code will fetch a dummy url that will take 5 seconds to respond. The modal dialog will be shown until the response is received.
+
+The default values for the options of the _asynctask_ button are the next:
+
+```html
+<button data-asynctask=""
+    data-asynctask-title="Please wait"
+    data-asynctask-message="Please wait while the task is being executed"
+    data-asynctask-custom-content=""
+    data-asynctask-button-cancel="Cancel"
+    data-asynctask-cancel=""
+    data-asynctask-header="true"
+    data-asynctask-footer="true">async task</button>
+```
 
 #### A note on the tasks to execute
 
@@ -280,19 +289,6 @@ function runningtask() {
 ```
 
 > **NOTE:** This example does not efectively end the task. You can find a much better example in the [examples.html](examples.html) file.
-
-#### Options
-
-The _asynctask_ button can be configured according to its specific needs. The following attributes can be set in the html5 tags:
-
-- `data-asynctask`: is the javascript code to evaluate as the asynchronous task.
-- `data-asynctask-title`: is the title of the modal dialog. It defaults to _Please wait_.
-- `data-asynctask-message`: is the message to show in the modal dialog. It defaults to _Please wait while the task is being executed_.
-- `data-asynctask-custom-content`: is a custom content to show under the message. It defaults to _null_.
-- `data-asynctask-button-cancel`: if needed, the content of the button to cancel the task. It defaults to _Cancel_.
-- `data-asynctask-cancel`: the code to execute if the task is cancelled (i.e. the cancel button is pressed). If it is not set, the task will not be cancellable and so the cancel button will not be shown. It defaults to _null_.
-- `data-asynctask-header`: if set to anything except _false_, the header of the dialog will be shown. It defaults to _true_.
-- `data-asynctask-footer`: if set to anything except _false_, the footer of the dialog will be shown. If there is no footer and the cancel button needs to appear, it will be placed inside the body of the dialog. It defaults to _true_.
 
 ## Using the library programmatically
 Once you have your interface, you can use the programmatical method to add any of the functionalities to your buttons.
