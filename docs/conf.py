@@ -59,9 +59,9 @@ epub_show_urls = 'footnote'
 
 
 # Make sure that the fontawesome CSS file is included in the build
-html_css_files = [
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-]
+# html_css_files = [
+#     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+# ]
 
 from docutils.nodes import emphasis
 from docutils.parsers.rst.roles import set_classes
