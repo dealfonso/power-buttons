@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-(function (window, document) {
+(function (exports) {
 	"use strict";
 	window.powerButtons = function (pluginName, els = [], options = {}) {
 		let elements = els;
@@ -1092,4 +1092,4 @@
 		}
 	}
 	ActionFormButton.register();
-})(window, document);
+})(window);
