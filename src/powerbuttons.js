@@ -9,13 +9,13 @@ class PowerButtons {
     static registerAction(action) {
         this.actionsRegistered[action.NAME.toLowerCase()] = action;
 
-        if (window.powerButtons === undefined) {
-            window.powerButtons = {};
+        if (exports.powerButtons === undefined) {
+            exports.powerButtons = {};
         }
-        if (window.powerButtons.defaults === undefined) {
-            window.powerButtons.defaults = {};
+        if (exports.powerButtons.defaults === undefined) {
+            exports.powerButtons.defaults = {};
         }
-        window.powerButtons.defaults[action.NAME.toLowerCase()] = Object.assign({}, action.DEFAULTS);
+        exports.powerButtons.defaults[action.NAME.toLowerCase()] = Object.assign({}, action.DEFAULTS);
     }
 
     /**
@@ -33,8 +33,8 @@ class PowerButtons {
 
         let defaultsWindow = {};
 
-        if ((window.powerButtons !== undefined) && (window.powerButtons.defaults !== undefined) && (window.powerButtons.defaults[action.NAME.toLowerCase()] !== undefined)) {
-            defaultsWindow = window.powerButtons.defaults[action.NAME.toLowerCase()];
+        if ((exports.powerButtons !== undefined) && (exports.powerButtons.defaults !== undefined) && (exports.powerButtons.defaults[action.NAME.toLowerCase()] !== undefined)) {
+            defaultsWindow = exports.powerButtons.defaults[action.NAME.toLowerCase()];
         }
 
         // Merge the defaults of the action with the defaults of the window and the options

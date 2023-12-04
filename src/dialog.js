@@ -1,7 +1,7 @@
 class Dialog {
     static create(options = {}, onButton = null, onHidden = null) {
         // If bootstrap is not supported, we'll use the legacy system dialog
-        if ((window.bootstrap === undefined) || (window.bootstrap.Modal === undefined)) {
+        if ((exports.bootstrap === undefined) || (exports.bootstrap.Modal === undefined)) {
             return new DialogLegacy(options, onButton, onHidden);
         }
         // If the user provided a selector or a dialog function, we'll use the custom dialog
@@ -60,7 +60,7 @@ class Dialog {
     onButton = null;
 
     constructor (options = {}, onButton = null, onHidden = null) {
-        if ((window.bootstrap === undefined) || (window.bootstrap.Modal === undefined)) {
+        if ((exports.bootstrap === undefined) || (exports.bootstrap.Modal === undefined)) {
             throw new Error("Bootstrap is required to use this class");
         }
 

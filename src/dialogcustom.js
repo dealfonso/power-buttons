@@ -45,7 +45,7 @@ class DialogCustom extends Dialog {
     _buttonHandlers = [];
 
     constructor (options = {}, onButton = null, onHidden = null) {
-        if ((window.bootstrap === undefined) || (window.bootstrap.Modal === undefined)) {
+        if ((exports.bootstrap === undefined) || (exports.bootstrap.Modal === undefined)) {
             throw new Error("Bootstrap is required to use this class");
         }
 

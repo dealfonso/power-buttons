@@ -16,7 +16,10 @@
 
 (function (exports) {
 	"use strict";
-	window.powerButtons = function (pluginName, els = [], options = {}) {
+	if (typeof exports === "undefined") {
+		var exports = window
+	}
+	exports.powerButtons = function (pluginName, els = [], options = {}) {
 		let elements = els;
 		if (typeof elements === "string") {
 			elements = document.querySelectorAll(elements)
@@ -41,17 +44,17 @@
 		}
 		return els
 	};
-	window.powerButtons.version = "2.0.1";
-	window.powerButtons.plugins = function () {
+	exports.powerButtons.version = "2.0.1";
+	exports.powerButtons.plugins = function () {
 		return Object.keys(PowerButtons.actionsRegistered)
 	};
-	if (window.$ !== undefined) {
-		window.$.fn.powerButtons = function (pluginName, options = {}) {
-			window.powerButtons(pluginName, this, options);
+	if (exports.$ !== undefined) {
+		exports.$.fn.powerButtons = function (pluginName, options = {}) {
+			exports.powerButtons(pluginName, this, options);
 			return this
 		};
-		window.$.fn.powerButtons.version = window.powerButtons.version;
-		window.$.fn.powerButtons.plugins = window.powerButtons.plugins
+		exports.$.fn.powerButtons.version = exports.powerButtons.version;
+		exports.$.fn.powerButtons.plugins = exports.powerButtons.plugins
 	}
 
 	function pascalToSnake(str) {
@@ -257,7 +260,7 @@
 	}
 	class Dialog {
 		static create(options = {}, onButton = null, onHidden = null) {
-			if (window.bootstrap === undefined || window.bootstrap.Modal === undefined) {
+			if (exports.bootstrap === undefined || exports.bootstrap.Modal === undefined) {
 				return new DialogLegacy(options, onButton, onHidden)
 			}
 			if (options.selector !== undefined && options.selector !== null || options.dialogFunction !== undefined && options.dialogFunction !== null) {
@@ -286,7 +289,7 @@
 		onHidden = null;
 		onButton = null;
 		constructor(options = {}, onButton = null, onHidden = null) {
-			if (window.bootstrap === undefined || window.bootstrap.Modal === undefined) {
+			if (exports.bootstrap === undefined || exports.bootstrap.Modal === undefined) {
 				throw new Error("Bootstrap is required to use this class")
 			}
 			this.options = {
@@ -509,10 +512,10 @@
 		dialog.show();
 		return dialog
 	}
-	if (window.powerButtons.utils === undefined) {
-		window.powerButtons.utils = {}
+	if (exports.powerButtons.utils === undefined) {
+		exports.powerButtons.utils = {}
 	}
-	Object.assign(window.powerButtons.utils, {
+	Object.assign(exports.powerButtons.utils, {
 		confirmDialog: confirmDialog,
 		alertDialog: alertDialog,
 		loadingDialog: loadingDialog
@@ -521,13 +524,13 @@
 		static actionsRegistered = {};
 		static registerAction(action) {
 			this.actionsRegistered[action.NAME.toLowerCase()] = action;
-			if (window.powerButtons === undefined) {
-				window.powerButtons = {}
+			if (exports.powerButtons === undefined) {
+				exports.powerButtons = {}
 			}
-			if (window.powerButtons.defaults === undefined) {
-				window.powerButtons.defaults = {}
+			if (exports.powerButtons.defaults === undefined) {
+				exports.powerButtons.defaults = {}
 			}
-			window.powerButtons.defaults[action.NAME.toLowerCase()] = Object.assign({}, action.DEFAULTS)
+			exports.powerButtons.defaults[action.NAME.toLowerCase()] = Object.assign({}, action.DEFAULTS)
 		}
 		static getActionSettings(action, options) {
 			if (this.actionsRegistered[action.NAME.toLowerCase()] === undefined) {
@@ -535,8 +538,8 @@
 				return {}
 			}
 			let defaultsWindow = {};
-			if (window.powerButtons !== undefined && window.powerButtons.defaults !== undefined && window.powerButtons.defaults[action.NAME.toLowerCase()] !== undefined) {
-				defaultsWindow = window.powerButtons.defaults[action.NAME.toLowerCase()]
+			if (exports.powerButtons !== undefined && exports.powerButtons.defaults !== undefined && exports.powerButtons.defaults[action.NAME.toLowerCase()] !== undefined) {
+				defaultsWindow = exports.powerButtons.defaults[action.NAME.toLowerCase()]
 			}
 			return Object.assign({}, action.DEFAULTS, defaultsWindow, options)
 		}

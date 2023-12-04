@@ -1,7 +1,11 @@
 'use strict';
 
+if (typeof exports === 'undefined') {
+    var exports = window;
+}
+
 // We'll create a namespace for the plugin, that will contain the plugin itself
-window.powerButtons = function(pluginName, els = [], options = {}) {
+exports.powerButtons = function(pluginName, els = [], options = {}) {
     let elements = els;
 
     if (typeof(elements) === "string") {
@@ -28,17 +32,17 @@ window.powerButtons = function(pluginName, els = [], options = {}) {
     return els;
 };
 
-window.powerButtons.version = '2.0.1';
-window.powerButtons.plugins = function() {
+exports.powerButtons.version = '2.0.2';
+exports.powerButtons.plugins = function() {
     return Object.keys(PowerButtons.actionsRegistered);
 }
 
 // Now we add the plugin to jQuery, if it has been loaded
-if (window.$ !== undefined) {
-    window.$.fn.powerButtons = function(pluginName, options = {}) {
-        window.powerButtons(pluginName, this, options);
+if (exports.$ !== undefined) {
+    exports.$.fn.powerButtons = function(pluginName, options = {}) {
+        exports.powerButtons(pluginName, this, options);
         return this;
     }
-    window.$.fn.powerButtons.version = window.powerButtons.version;
-    window.$.fn.powerButtons.plugins = window.powerButtons.plugins;
+    exports.$.fn.powerButtons.version = exports.powerButtons.version;
+    exports.$.fn.powerButtons.plugins = exports.powerButtons.plugins;
 }
