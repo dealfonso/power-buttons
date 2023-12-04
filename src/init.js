@@ -32,7 +32,7 @@ exports.powerButtons = function(pluginName, els = [], options = {}) {
     return els;
 };
 
-exports.powerButtons.version = '2.0.1';
+exports.powerButtons.version = '2.0.2';
 exports.powerButtons.plugins = function() {
     return Object.keys(PowerButtons.actionsRegistered);
 }
