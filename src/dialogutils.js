@@ -56,11 +56,11 @@ function loadingDialog(message, customContent = null, canCancel = null) {
     return dialog;
 }
 
-if (window.powerButtons.utils === undefined) {
-    window.powerButtons.utils = {};
+if (exports.powerButtons.utils === undefined) {
+    exports.powerButtons.utils = {};
 }
 
-Object.assign(window.powerButtons.utils, {
+Object.assign(exports.powerButtons.utils, {
     confirmDialog: confirmDialog,
     alertDialog: alertDialog,
     loadingDialog: loadingDialog
