@@ -175,23 +175,19 @@ class PowerButtons {
     }
 
     /**
-     * Function that initializes the actions of this library, by calling the `initializeAll` method of each action. The idea
-     *   is that the `initializeAll` searches for the elements that have the data attributes for the action and initializes
+     * Function that initializes the actions of this library, by calling the `discoverAll` method of each action. The idea
+     *   is that the `discoverAll` searches for the elements that have the data attributes for the action and initializes
      *   them.
      */
-    static initializeAll() {
+    static discoverAll() {
         Object.entries(this.actionsRegistered).forEach(([key, action]) => {
-            action.initializeAll();
+            action.discoverAll();
         });
     }
-}
 
-function init() {
-    PowerButtons.initializeAll();
-}
-
-if (document.addEventListener !== undefined) {
-    document.addEventListener('DOMContentLoaded', function(e) {
-        init();
-    });
+    static discover(els, options = {}) {
+        Object.entries(this.actionsRegistered).forEach(([key, action]) => {
+            action.discover(els, options);
+        });
+    }
 }
