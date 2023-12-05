@@ -19,35 +19,102 @@
 	if (typeof exports === "undefined") {
 		var exports = window
 	}
-	exports.powerButtons = function (pluginName, els = [], options = {}) {
-		let elements = els;
-		if (typeof elements === "string") {
-			elements = document.querySelectorAll(elements)
+	exports.powerButtons = function (param1, param2 = null, param3 = null) {
+		let pluginName = null;
+		let els = [];
+		let options = {};
+
+		function registeredPlugin(pluginName) {
+			for (let actionName in PowerButtons.actionsRegistered) {
+				if (pluginName.toLocaleLowerCase() === actionName.toLocaleLowerCase()) {
+					return actionName
+				}
+			}
+			return null
+		}
+		if (typeof param1 === "string") {
+			pluginName = registeredPlugin(param1);
+			if (pluginName === null) {
+				els = document.querySelectorAll(param1);
+				if (els.length === 0) {
+					console.error(`Parameter ${param1} is neither the name of a registered plugin nor a valid selector`);
+					return
+				}
+				if (arguments.length > 2) {
+					console.warn(`Ignoring extra parameters`)
+				}
+				options = param2
+			} else {
+				let valid = false;
+				if (typeof param2 === "string") {
+					els = document.querySelectorAll(param2);
+					valid = true
+				} else if (param2 instanceof HTMLElement) {
+					els = [param2];
+					valid = true
+				} else if (param2.length !== undefined) {
+					valid = true;
+					for (let e in param2) {
+						if (!(param2[e] instanceof HTMLElement)) {
+							valid = false;
+							break
+						}
+					}
+					if (valid) {
+						els = param2
+					}
+				}
+				if (!valid) {
+					console.error(`Parameter ${param2} is neither a valid selector, a list of elements or an HTMLElement`);
+					return
+				}
+				options = param3
+			}
+		} else if (param1 instanceof HTMLElement) {
+			els = [param1]
+		} else if (param1.length !== undefined) {
+			for (let e in param1) {
+				if (!(param1[e] instanceof HTMLElement)) {
+					console.error(`Parameter ${param1} is neither a valid selector, a list of elements or an HTMLElement`);
+					return
+				}
+			}
+			els = param1
 		} else {
-			if (elements.length === undefined) {
-				elements = [elements]
-			}
+			console.error(`Parameter ${param1} is neither a valid selector, a list of elements or an HTMLElement`);
+			return
 		}
-		let pluginToApply = null;
-		for (let actionName in PowerButtons.actionsRegistered) {
-			if (pluginName.toLocaleLowerCase() === actionName.toLocaleLowerCase()) {
-				pluginToApply = PowerButtons.actionsRegistered[actionName];
-				break
-			}
+		if (options === null) {
+			options = {}
 		}
-		if (pluginToApply === undefined) {
-			console.error(`The action ${pluginName} is not registered`)
+		if (typeof options !== "object") {
+			console.error(`Options parameter must be an object`);
+			return
+		}
+		if (pluginName !== null) {
+			let plugin = PowerButtons.actionsRegistered[pluginName];
+			for (let el of els) {
+				plugin.initialize(el, options)
+			}
 		} else {
-			for (let el of elements) {
-				pluginToApply.initialize(el, options)
-			}
+			PowerButtons.discover(els, options)
 		}
-		return els
 	};
-	exports.powerButtons.version = "2.0.1";
+	exports.powerButtons.version = "2.1.0";
 	exports.powerButtons.plugins = function () {
 		return Object.keys(PowerButtons.actionsRegistered)
 	};
+	exports.powerButtons.discoverAll = function () {
+		PowerButtons.discoverAll()
+	};
+	exports.powerButtons.discover = function (els, options) {
+		PowerButtons.discover(els, options)
+	};
+	if (document.addEventListener !== undefined) {
+		document.addEventListener("DOMContentLoaded", function (e) {
+			PowerButtons.discoverAll()
+		})
+	}
 	if (exports.$ !== undefined) {
 		exports.$.fn.powerButtons = function (pluginName, options = {}) {
 			exports.powerButtons(pluginName, this, options);
@@ -611,20 +678,16 @@
 		reset() {
 			this.current_action = 0
 		}
-		static initializeAll() {
+		static discoverAll() {
 			Object.entries(this.actionsRegistered).forEach(([key, action]) => {
-				action.initializeAll()
+				action.discoverAll()
 			})
 		}
-	}
-
-	function init() {
-		PowerButtons.initializeAll()
-	}
-	if (document.addEventListener !== undefined) {
-		document.addEventListener("DOMContentLoaded", function (e) {
-			init()
-		})
+		static discover(els, options = {}) {
+			Object.entries(this.actionsRegistered).forEach(([key, action]) => {
+				action.discover(els, options)
+			})
+		}
 	}
 	class Action {
 		static NAME = null;
@@ -659,16 +722,32 @@
 				type: this.NAME.toLowerCase()
 			}, values))
 		}
-		static initializeAll(values = null) {
+		static discoverAll() {
 			let prefix = this.NAME.toLowerCase();
-			for (let el of document.querySelectorAll(`[data-${prefix}`)) {
-				let options = null;
-				if (values === null) {
-					options = this.extractOptions(el, prefix)
-				} else {
-					options = Object.assign({}, values)
+			this.discover(document.querySelectorAll(`[data-${prefix}]`))
+		}
+		static discover(els, options = {}, skipInitialized = true) {
+			if (els.length === undefined) {
+				els = [els]
+			}
+			let prefix = this.NAME.toLowerCase();
+			for (let el of els) {
+				if (skipInitialized && el._powerButtons !== undefined && el._powerButtons._discover !== undefined && el._powerButtons._discover.indexOf(prefix) !== -1) {
+					continue
 				}
-				this.initialize(el, options)
+				if (el.dataset[prefix] === undefined) {
+					continue
+				}
+				let currentOptions = Object.assign(this.extractOptions(el, prefix), options);
+				this.initialize(el, currentOptions);
+				if (el._powerButtons !== undefined) {
+					if (el._powerButtons._discover === undefined) {
+						el._powerButtons._discover = []
+					}
+					if (!el._powerButtons._discover.includes(prefix)) {
+						el._powerButtons._discover.push(prefix)
+					}
+				}
 			}
 		}
 		static execute(el, options, onNextAction, onCancelActions) {

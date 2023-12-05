@@ -5,36 +5,122 @@ if (typeof exports === 'undefined') {
 }
 
 // We'll create a namespace for the plugin, that will contain the plugin itself
-exports.powerButtons = function(pluginName, els = [], options = {}) {
-    let elements = els;
+exports.powerButtons = function(param1, param2 = null, param3 = null) {
 
-    if (typeof(elements) === "string") {
-        elements = document.querySelectorAll(elements);
+    // We are going to support three different ways of calling the plugin:
+    //   - powerButtons(pluginName, els, options)
+    //   - powerButtons(selector, options)
+    //   - powerButtons(el, options)
+    //   - powerButtons(els, options)
+    
+    let pluginName = null;
+    let els = [];
+    let options = {};
+
+    function registeredPlugin(pluginName) {
+        for (let actionName in PowerButtons.actionsRegistered) {
+            if (pluginName.toLocaleLowerCase() === actionName.toLocaleLowerCase()) {
+                return actionName;
+            }
+        }
+        return null;
+    }
+
+    if (typeof(param1) === "string") {
+        // Let's check if the plugin is registered
+        pluginName = registeredPlugin(param1);
+        if (pluginName === null) {
+            // If the plugin is not registered, we'll assume that it is a selector and this is powerButtons(selector, options)
+            els = document.querySelectorAll(param1);
+            if (els.length === 0) {
+                console.error(`Parameter ${param1} is neither the name of a registered plugin nor a valid selector`);
+                return;
+            }
+
+            // If the second parameter is not an object or there are three parameters, we'll raise an error
+            if (arguments.length > 2) {
+                console.warn(`Ignoring extra parameters`);
+            }
+            options = param2;
+        } else {
+            // If the plugin is registered, this is powerButtons(pluginName, els, options)
+            let valid = false;
+            if (typeof(param2) === "string") {
+                els = document.querySelectorAll(param2);
+                valid = true;
+            } else if (param2 instanceof HTMLElement) {
+                els = [ param2 ];
+                valid = true;
+            } else if (param2.length !== undefined) {
+                valid = true;
+                for (let e in param2) {
+                    if (! (param2[e] instanceof HTMLElement)) {
+                        valid = false;
+                        break;
+                    }
+                }
+                if (valid) {
+                    els = param2;
+                }
+            }
+            if (! valid) {
+                console.error(`Parameter ${param2} is neither a valid selector, a list of elements or an HTMLElement`);
+                return;
+            }
+            options = param3;
+        }
+    } else if (param1 instanceof HTMLElement) {
+        els = [ param1 ];
+    } else if (param1.length !== undefined) {
+        for (let e in param1) {
+            if (! (param1[e] instanceof HTMLElement)) {
+                console.error(`Parameter ${param1} is neither a valid selector, a list of elements or an HTMLElement`);
+                return;
+            }
+        }
+        els = param1;
     } else {
-        if (elements.length === undefined) {
-            elements = [ elements ];
-        }
+        console.error(`Parameter ${param1} is neither a valid selector, a list of elements or an HTMLElement`);
+        return;
     }
-    let pluginToApply = null;
-    for (let actionName in PowerButtons.actionsRegistered) {
-        if (pluginName.toLocaleLowerCase() === actionName.toLocaleLowerCase()) {
-            pluginToApply = PowerButtons.actionsRegistered[actionName];
-            break;
-        }
+
+    if (options === null) {
+        options = {};
     }
-    if (pluginToApply === undefined) {
-        console.error(`The action ${pluginName} is not registered`);
+    if (typeof(options) !== "object") {
+        console.error(`Options parameter must be an object`);
+        return;
+    }
+
+    // Retrieve the keys of the registered plugins
+    if (pluginName !== null) {
+        let plugin = PowerButtons.actionsRegistered[pluginName];
+        for (let el of els) {
+            plugin.initialize(el, options);
+        }
     } else {
-        for (let el of elements) {
-            pluginToApply.initialize(el, options);
-        }
+        // We are discovering the plugins and parameters from the tag
+        PowerButtons.discover(els, options);
     }
-    return els;
 };
 
-exports.powerButtons.version = '2.0.1';
+exports.powerButtons.version = '2.1.0';
 exports.powerButtons.plugins = function() {
     return Object.keys(PowerButtons.actionsRegistered);
+}
+
+exports.powerButtons.discoverAll = function() {
+    PowerButtons.discoverAll();
+}
+
+exports.powerButtons.discover = function(els, options) {
+    PowerButtons.discover(els, options);
+}
+
+if (document.addEventListener !== undefined) {
+    document.addEventListener('DOMContentLoaded', function(e) {
+        PowerButtons.discoverAll();
+    });
 }
 
 // Now we add the plugin to jQuery, if it has been loaded
@@ -811,27 +897,22 @@ Object.assign(exports.powerButtons.utils, {
     }
 
     /**
-     * Function that initializes the actions of this library, by calling the `initializeAll` method of each action. The idea
-     *   is that the `initializeAll` searches for the elements that have the data attributes for the action and initializes
+     * Function that initializes the actions of this library, by calling the `discoverAll` method of each action. The idea
+     *   is that the `discoverAll` searches for the elements that have the data attributes for the action and initializes
      *   them.
      */
-    static initializeAll() {
+    static discoverAll() {
         Object.entries(this.actionsRegistered).forEach(([key, action]) => {
-            action.initializeAll();
+            action.discoverAll();
         });
     }
-}
 
-function init() {
-    PowerButtons.initializeAll();
-}
-
-if (document.addEventListener !== undefined) {
-    document.addEventListener('DOMContentLoaded', function(e) {
-        init();
-    });
-}
-class Action {
+    static discover(els, options = {}) {
+        Object.entries(this.actionsRegistered).forEach(([key, action]) => {
+            action.discover(els, options);
+        });
+    }
+}class Action {
     static NAME = null;
 
     static register() {
@@ -918,23 +999,47 @@ class Action {
 
     /**
      * Searches for any element with a data-{name} attribute, extract the values from the dataset (if any) and initializes 
-     *  it using the `initialize` method. (see `initialize` for more info).
-     * 
-     * @param {object} values, the specific values to use for the initialization appart from the default ones; if not provided,
-     *                   the values will be extracted from the data attributes
+     *  it using the `discover` method. (see `discover` for more info).
      */
-    static initializeAll(values = null) {
+    static discoverAll() {
+        let prefix = this.NAME.toLowerCase();
+        this.discover(document.querySelectorAll(`[data-${prefix}]`));
+    }
+
+    /**
+     * Extract the values from the dataset (if any) and initializes it using the `initialize` method. (see `initialize` for more info).
+     * 
+     * @param {HTMLElement | Array(HTMLElement)} els, the element(s) to discover the action for
+     * @param {object} options, the options to override for the initialization of the action from those extracted from the data attributes and the user-provided ones.
+     * @param {boolean} skipInitialized, if true, it will skip the element if it has already been initialized (i.e. if it has the _powerButtons._discover property contains the name
+     *     of this action as a value in the array)
+     */
+    static discover(els, options = {}, skipInitialized = true) {
+        if (els.length === undefined) {
+            els = [ els ];
+        }
+
         let prefix = this.NAME.toLowerCase();
 
-        for (let el of document.querySelectorAll(`[data-${prefix}`)) {
-            let options = null;
-            if (values === null) {
-                options = this.extractOptions(el, prefix);
-            } else {
-                options = Object.assign({}, values);
+        for (let el of els) {
+            if ((skipInitialized) && (el._powerButtons !== undefined) && (el._powerButtons._discover !== undefined) && (el._powerButtons._discover.indexOf(prefix) !== -1)) {
+                continue;
             }
-            this.initialize(el, options);
-        }        
+            if (el.dataset[prefix] === undefined) {
+                continue;
+            }
+
+            let currentOptions = Object.assign(this.extractOptions(el, prefix), options);
+            this.initialize(el, currentOptions);
+            if (el._powerButtons !== undefined) {
+                if (el._powerButtons._discover === undefined) {
+                    el._powerButtons._discover = [];
+                }
+                if (! el._powerButtons._discover.includes(prefix)) {
+                    el._powerButtons._discover.push(prefix);
+                }
+            }
+        }
     }
 
     /**
