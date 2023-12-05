@@ -314,6 +314,17 @@ $('#mybutton').powerButtons('confirm', options);
 
 The names for the available plugins can be seen in the first section of this document: _confirm_, _verify_, _showmessage_ and _formset_.
 
+### Functions available in the programmatical method
+
+The `powerButtons` library offers the next functions:
+
+- `powerButtons(element, options)`: adds the functionality of the plugin to the element, by discovering the plugin from the attributes of the element (i.e. `data-confirm`, `data-verify`, etc.).
+- `powerButtons(plugin, element, options)`: adds the functionality of the specified plugin to the element. The plugin can be any of the available plugins: _confirm_, _verify_, _showmessage_, _formset_, _formbutton_ or _asynctask_. The element can be either a selector, a DOM element or an array of DOM elements. The options are the options for the plugin.
+- `powerButtons.discover(element)`: discovers the plugin from the attributes of the element (i.e. `data-confirm`, `data-verify`, etc.) and initializes the elements with the appropriate plugin(s).
+- `powerButtons.discoverAll()`: triggers the discovery of the plugins in all the elements in the document using the attributes of the element (i.e. `data-confirm`, `data-verify`, etc.) and initializes the elements with the appropriate plugin(s).
+- `powerButtons.plugins()`: returns the names of the available plugins.
+- `powerButtons.version`: is a string that contains the version of the library.
+
 ### Multiple plugins in the same button
 
 A button can contain multiple of these functionalities at the same time. For example, a button can be a _confirm_ button and a _verify_ button at the same time. 
