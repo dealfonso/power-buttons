@@ -85,23 +85,47 @@ class Action {
 
     /**
      * Searches for any element with a data-{name} attribute, extract the values from the dataset (if any) and initializes 
-     *  it using the `initialize` method. (see `initialize` for more info).
-     * 
-     * @param {object} values, the specific values to use for the initialization appart from the default ones; if not provided,
-     *                   the values will be extracted from the data attributes
+     *  it using the `discover` method. (see `discover` for more info).
      */
-    static initializeAll(values = null) {
+    static discoverAll() {
+        let prefix = this.NAME.toLowerCase();
+        this.discover(document.querySelectorAll(`[data-${prefix}]`));
+    }
+
+    /**
+     * Extract the values from the dataset (if any) and initializes it using the `initialize` method. (see `initialize` for more info).
+     * 
+     * @param {HTMLElement | Array(HTMLElement)} els, the element(s) to discover the action for
+     * @param {object} options, the options to override for the initialization of the action from those extracted from the data attributes and the user-provided ones.
+     * @param {boolean} skipInitialized, if true, it will skip the element if it has already been initialized (i.e. if it has the _powerButtons._discover property contains the name
+     *     of this action as a value in the array)
+     */
+    static discover(els, options = {}, skipInitialized = true) {
+        if (els.length === undefined) {
+            els = [ els ];
+        }
+
         let prefix = this.NAME.toLowerCase();
 
-        for (let el of document.querySelectorAll(`[data-${prefix}`)) {
-            let options = null;
-            if (values === null) {
-                options = this.extractOptions(el, prefix);
-            } else {
-                options = Object.assign({}, values);
+        for (let el of els) {
+            if ((skipInitialized) && (el._powerButtons !== undefined) && (el._powerButtons._discover !== undefined) && (el._powerButtons._discover.indexOf(prefix) !== -1)) {
+                continue;
             }
-            this.initialize(el, options);
-        }        
+            if (el.dataset[prefix] === undefined) {
+                continue;
+            }
+
+            let currentOptions = Object.assign(this.extractOptions(el, prefix), options);
+            this.initialize(el, currentOptions);
+            if (el._powerButtons !== undefined) {
+                if (el._powerButtons._discover === undefined) {
+                    el._powerButtons._discover = [];
+                }
+                if (! el._powerButtons._discover.includes(prefix)) {
+                    el._powerButtons._discover.push(prefix);
+                }
+            }
+        }
     }
 
     /**
