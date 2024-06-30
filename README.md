@@ -68,7 +68,7 @@ $ cp power-buttons/dist/power-buttons.js /path/to/my/html/folder
 You can use this library directly from jsdelivr CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/dealfonso/jsconfirm-buttons@power-buttons/dist/powerbuttons.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/dealfonso/power-buttons@2/dist/powerbuttons.js"></script>
 ```
 
 # Documentation
