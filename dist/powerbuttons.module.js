@@ -14,10 +14,11 @@
    limitations under the License.
 */
 
+if (typeof imports === "undefined") { var imports = {}; }
 (function (exports) {
 	"use strict";
 	if (typeof exports === "undefined") {
-		var exports = window;
+		var exports = window
 	}
 	exports.powerButtons = function (param1, param2 = null, param3 = null) {
 		let pluginName = null;
@@ -27,10 +28,10 @@
 		function registeredPlugin(pluginName) {
 			for (let actionName in PowerButtons.actionsRegistered) {
 				if (pluginName.toLocaleLowerCase() === actionName.toLocaleLowerCase()) {
-					return actionName;
+					return actionName
 				}
 			}
-			return null;
+			return null
 		}
 		if (typeof param1 === "string") {
 			pluginName = registeredPlugin(param1);
@@ -38,173 +39,173 @@
 				els = document.querySelectorAll(param1);
 				if (els.length === 0) {
 					console.error(`Parameter ${param1} is neither the name of a registered plugin nor a valid selector`);
-					return;
+					return
 				}
 				if (arguments.length > 2) {
-					console.warn(`Ignoring extra parameters`);
+					console.warn(`Ignoring extra parameters`)
 				}
-				options = param2;
+				options = param2
 			} else {
 				let valid = false;
 				if (typeof param2 === "string") {
 					els = document.querySelectorAll(param2);
-					valid = true;
+					valid = true
 				} else if (param2 instanceof HTMLElement) {
 					els = [param2];
-					valid = true;
+					valid = true
 				} else if (param2.length !== undefined) {
 					valid = true;
 					for (let e in param2) {
 						if (!(param2[e] instanceof HTMLElement)) {
 							valid = false;
-							break;
+							break
 						}
 					}
 					if (valid) {
-						els = param2;
+						els = param2
 					}
 				}
 				if (!valid) {
 					console.error(`Parameter ${param2} is neither a valid selector, a list of elements or an HTMLElement`);
-					return;
+					return
 				}
-				options = param3;
+				options = param3
 			}
 		} else if (param1 instanceof HTMLElement) {
-			els = [param1];
+			els = [param1]
 		} else if (param1.length !== undefined) {
 			for (let e in param1) {
 				if (!(param1[e] instanceof HTMLElement)) {
 					console.error(`Parameter ${param1} is neither a valid selector, a list of elements or an HTMLElement`);
-					return;
+					return
 				}
 			}
-			els = param1;
+			els = param1
 		} else {
 			console.error(`Parameter ${param1} is neither a valid selector, a list of elements or an HTMLElement`);
-			return;
+			return
 		}
 		if (options === null) {
-			options = {};
+			options = {}
 		}
 		if (typeof options !== "object") {
 			console.error(`Options parameter must be an object`);
-			return;
+			return
 		}
 		if (pluginName !== null) {
 			let plugin = PowerButtons.actionsRegistered[pluginName];
 			for (let el of els) {
-				plugin.initialize(el, options);
+				plugin.initialize(el, options)
 			}
 		} else {
-			PowerButtons.discover(els, options);
+			PowerButtons.discover(els, options)
 		}
 	};
 	exports.powerButtons.version = "2.1.2";
 	exports.powerButtons.plugins = function () {
-		return Object.keys(PowerButtons.actionsRegistered);
+		return Object.keys(PowerButtons.actionsRegistered)
 	};
 	exports.powerButtons.discoverAll = function () {
-		PowerButtons.discoverAll();
+		PowerButtons.discoverAll()
 	};
 	exports.powerButtons.discover = function (els, options) {
-		PowerButtons.discover(els, options);
+		PowerButtons.discover(els, options)
 	};
 	if (document.addEventListener !== undefined) {
 		document.addEventListener("DOMContentLoaded", function (e) {
-			PowerButtons.discoverAll();
-		});
+			PowerButtons.discoverAll()
+		})
 	}
 	if (exports.$ !== undefined) {
 		exports.$.fn.powerButtons = function (pluginName, options = {}) {
 			exports.powerButtons(pluginName, this, options);
-			return this;
+			return this
 		};
 		exports.$.fn.powerButtons.version = exports.powerButtons.version;
-		exports.$.fn.powerButtons.plugins = exports.powerButtons.plugins;
+		exports.$.fn.powerButtons.plugins = exports.powerButtons.plugins
 	}
 
 	function pascalToSnake(str) {
-		return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).replace(/^_*/, "");
+		return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).replace(/^_*/, "")
 	}
 
 	function pascalToKebab(str) {
-		return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`).replace(/^-*/, "");
+		return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`).replace(/^-*/, "")
 	}
 
 	function snakeCaseToCamel(str) {
-		return str.replace(/-([a-z])/g, g => g[1].toUpperCase());
+		return str.replace(/-([a-z])/g, g => g[1].toUpperCase())
 	}
 
 	function pascalToCamel(str) {
-		return str.charAt(0).toLowerCase() + str.slice(1);
+		return str.charAt(0).toLowerCase() + str.slice(1)
 	}
 
 	function CamelToCamel(str) {
-		return str.charAt(0).toUpperCase() + str.slice(1);
+		return str.charAt(0).toUpperCase() + str.slice(1)
 	}
 
 	function isElement(el) {
-		return el instanceof Element || el instanceof HTMLDocument;
+		return el instanceof Element || el instanceof HTMLDocument
 	}
 
 	function parseBoolean(value) {
 		if (typeof value === "boolean") {
-			return value;
+			return value
 		}
 		if (typeof value === "string") {
 			value = value.toLowerCase();
 			if (value === "true" || value === "yes" || value === "1") {
-				return true;
+				return true
 			}
-			return false;
+			return false
 		}
-		return !!value;
+		return !!value
 	}
 
 	function createTag(tag, props = {}, html = null) {
 		let parts_id = tag.split("#");
 		let id = null;
 		if (parts_id.length == 1) {
-			tag = parts_id[0];
+			tag = parts_id[0]
 		} else {
 			parts_id[1] = parts_id[1].split(".");
 			id = parts_id[1][0];
-			tag = [parts_id[0], ...parts_id[1].slice(1)].join(".");
+			tag = [parts_id[0], ...parts_id[1].slice(1)].join(".")
 		}
 		let parts = tag.split(".");
 		tag = parts[0];
 		if (tag === "") {
-			tag = "div";
+			tag = "div"
 		}
 		if (typeof props === "string") {
 			html = props;
-			props = {};
+			props = {}
 		}
 		if (html !== null) {
-			props.innerHTML = html;
+			props.innerHTML = html
 		}
 		if (id !== null) {
-			props.id = id;
+			props.id = id
 		}
 		props.className = [props.className, ...parts.slice(1)].filter(function (e) {
-			return `${e}`.trim() !== "";
+			return `${e}`.trim() !== ""
 		}).join(" ");
 		let el = document.createElement(tag);
 		for (let prop in props) {
 			if (el[prop] !== undefined) {
-				el[prop] = props[prop];
+				el[prop] = props[prop]
 			} else {
-				el.setAttribute(prop, props[prop]);
+				el.setAttribute(prop, props[prop])
 			}
 		}
-		return el;
+		return el
 	}
 
 	function appendToElement(el, ...args) {
 		let filtered = args.filter(e => e !== null && e !== undefined);
 		el.append(...filtered);
-		return el;
+		return el
 	}
 
 	function searchForm(formName) {
@@ -214,21 +215,21 @@
 			if (formObject === undefined) {
 				formObject = document.querySelector(formName);
 				if (formObject === null) {
-					console.warn(`form ${formName} not found`);
+					console.warn(`form ${formName} not found`)
 				}
 			}
 		}
 		if (formObject !== null) {
 			if (formObject.tagName.toLowerCase() !== "form") {
-				console.warn(`form ${formName} is not a form`);
+				console.warn(`form ${formName} is not a form`)
 			}
 		}
-		return formObject;
+		return formObject
 	}
 
 	function getValueWithJavascriptSupport(value, context = null) {
 		if (typeof value === "function") {
-			return value.bind(context);
+			return value.bind(context)
 		}
 		if (typeof value === "string") {
 			let internalValue = value.trim();
@@ -236,44 +237,44 @@
 				try {
 					let f = internalValue.substring(11);
 					value = function () {
-						return eval(f);
-					}.bind(context);
+						return eval(f)
+					}.bind(context)
 				} catch (e) {
 					console.error(`Error executing javascript code ${internalValue.substring(11)}, error: ${e}`);
-					value = null;
+					value = null
 				}
 			}
 		}
-		return value;
+		return value
 	}
 
 	function promiseForEvent(el, event) {
 		let resolveFunction = null;
 		let promise = new Promise(resolve => {
-			resolveFunction = resolve;
+			resolveFunction = resolve
 		});
 		let handler = function () {
 			el.removeEventListener(event, handler);
-			resolveFunction();
+			resolveFunction()
 		};
 		el.addEventListener(event, handler);
-		return promise;
+		return promise
 	}
 
 	function isEmpty(obj) {
 		if (obj === null || obj === undefined) {
-			return true;
+			return true
 		}
 		if (obj instanceof Array) {
-			return obj.length === 0;
+			return obj.length === 0
 		}
 		if (obj instanceof Object) {
-			return Object.keys(obj).length === 0;
+			return Object.keys(obj).length === 0
 		}
 		if (typeof obj === "string") {
-			return obj.trim() === "";
+			return obj.trim() === ""
 		}
-		return false;
+		return false
 	}
 	class DialogLegacy {
 		DEFAULTS = {
@@ -289,15 +290,15 @@
 			this.options.buttons = ["Accept", "Cancel"];
 			this.result = null;
 			this.onButton = onButton;
-			this.onHidden = onHidden;
+			this.onHidden = onHidden
 		}
 		dispose() {}
 		show(onButton = null, onHidden = null) {
 			if (onButton !== null) {
-				this.onButton = onButton;
+				this.onButton = onButton
 			}
 			if (onHidden !== null) {
-				this.onHidden = onHidden;
+				this.onHidden = onHidden
 			}
 			switch (this.buttonCount) {
 			case 0:
@@ -309,31 +310,31 @@
 				this.result = confirm(this.options.message) ? 0 : 1;
 				break;
 			default:
-				throw `Unsupported button count ${this.buttonCount}`;
+				throw `Unsupported button count ${this.buttonCount}`
 			}
 			if (this.onButton !== null) {
 				this.onButton(this.result, {
 					button: this.result,
 					text: this.options.buttons[this.result]
-				}, null);
+				}, null)
 			}
 			if (this.onHidden !== null) {
 				this.onHidden(this.result, {
 					button: this.result,
 					text: this.options.buttons[this.result]
-				}, null);
+				}, null)
 			}
 		}
 	}
 	class Dialog {
 		static create(options = {}, onButton = null, onHidden = null) {
 			if (exports.bootstrap === undefined || exports.bootstrap.Modal === undefined) {
-				return new DialogLegacy(options, onButton, onHidden);
+				return new DialogLegacy(options, onButton, onHidden)
 			}
 			if (options.selector !== undefined && options.selector !== null || options.dialogFunction !== undefined && options.dialogFunction !== null) {
-				throw new Error("not implemented, yet");
+				throw new Error("not implemented, yet")
 			}
-			return new Dialog(options, onButton, onHidden);
+			return new Dialog(options, onButton, onHidden)
 		}
 		DEFAULTS = {
 			title: "Title",
@@ -357,7 +358,7 @@
 		onButton = null;
 		constructor(options = {}, onButton = null, onHidden = null) {
 			if (exports.bootstrap === undefined || exports.bootstrap.Modal === undefined) {
-				throw new Error("Bootstrap is required to use this class");
+				throw new Error("Bootstrap is required to use this class")
 			}
 			this.options = {
 				...this.DEFAULTS,
@@ -369,16 +370,16 @@
 				if (typeof button === "string") {
 					button = {
 						text: button
-					};
+					}
 				} else {
 					if (button.text === undefined) {
-						button.text = `Button ${i}`;
+						button.text = `Button ${i}`
 					}
 				}
 				if (button.class === undefined) {
-					button.class = this.options.buttonClasses[Math.min(i, this.options.buttonClasses.length - 1)];
+					button.class = this.options.buttonClasses[Math.min(i, this.options.buttonClasses.length - 1)]
 				}
-				parsedButtons.push(button);
+				parsedButtons.push(button)
 			}
 			this.options.buttons = parsedButtons;
 			this.dialog = null;
@@ -386,7 +387,7 @@
 			this.result = null;
 			this.onButton = onButton;
 			this.onHidden = onHidden;
-			this._hiddenHandler = this._hiddenHandler.bind(this);
+			this._hiddenHandler = this._hiddenHandler.bind(this)
 		}
 		_hiddenHandler() {
 			this.dialog.removeEventListener("hidden.bs.modal", this._hiddenHandler);
@@ -395,53 +396,53 @@
 					this.onHidden(this.result, {
 						button: this.result,
 						text: this.options.buttons[this.result]
-					});
+					})
 				} else {
-					this.onHidden(this.result, null);
+					this.onHidden(this.result, null)
 				}
 			}
 		}
 		dispose() {
 			if (this.modal !== null) {
 				this.modal.dispose();
-				this.modal = null;
+				this.modal = null
 			}
 			this.dialog.remove();
-			this.dialog = null;
+			this.dialog = null
 		}
 		show(onButton = null, onHidden = null) {
 			if (this.dialog === null) {
-				this.dialog = this._build_dialog(this.options);
+				this.dialog = this._build_dialog(this.options)
 			}
 			if (this.modal === null) {
 				this.modal = new bootstrap.Modal(this.dialog, {
 					backdrop: this.options.escapeKeyCancels ? true : "static",
 					keyboard: this.options.escapeKeyCancels
-				});
+				})
 			}
 			this.dialog.addEventListener("hidden.bs.modal", this._hiddenHandler);
 			this.result = null;
 			if (onButton !== null) {
-				this.onButton = onButton;
+				this.onButton = onButton
 			}
 			if (onHidden !== null) {
-				this.onHidden = onHidden;
+				this.onHidden = onHidden
 			}
 			this.modal.show();
-			return promiseForEvent(this.dialog, "shown.bs.modal");
+			return promiseForEvent(this.dialog, "shown.bs.modal")
 		}
 		hide() {
 			this.modal.hide();
-			return promiseForEvent(this.dialog, "hidden.bs.modal");
+			return promiseForEvent(this.dialog, "hidden.bs.modal")
 		}
 		_handleButton(index, button, buttonObject) {
 			this.result = index;
 			let autoHide = true;
 			if (this.onButton !== null) {
-				autoHide = !(this.onButton(index, button, buttonObject) === false);
+				autoHide = !(this.onButton(index, button, buttonObject) === false)
 			}
 			if (autoHide) {
-				this.hide();
+				this.hide()
 			}
 		}
 		_build_dialog(options = {}) {
@@ -452,15 +453,15 @@
 					type: "button",
 					"aria-label": "Close"
 				});
-				closeButton.addEventListener("click", () => this._handleButton(-1, null, closeButton));
+				closeButton.addEventListener("click", () => this._handleButton(-1, null, closeButton))
 			}
 			if (parseBoolean(options.header)) {
 				header = createTag(".modal-header");
 				if (options.title !== null) {
-					header.append(appendToElement(createTag(".modal-title"), appendToElement(createTag("h5", options.title))));
+					header.append(appendToElement(createTag(".modal-title"), appendToElement(createTag("h5", options.title))))
 				}
 				if (parseBoolean(options.close)) {
-					header.append(closeButton);
+					header.append(closeButton)
 				}
 			}
 			let buttons = [];
@@ -469,10 +470,10 @@
 					let button = options.buttons[i];
 					let buttonClass = button.class.split(" ").map(e => e.trim()).filter(e => e !== "").join(".");
 					if (options.footer === false) {
-						buttonClass += ".mx-1";
+						buttonClass += ".mx-1"
 					}
 					if (buttonClass !== "") {
-						buttonClass = "." + buttonClass;
+						buttonClass = "." + buttonClass
 					}
 					let buttonObject = createTag("button.btn" + buttonClass + ".button" + i, {
 						type: "button"
@@ -480,36 +481,36 @@
 					buttonObject.addEventListener("click", function () {
 						this._handleButton(i, button, buttonObject);
 						if (button.handler !== undefined && button.handler !== null) {
-							button.handler(i, button, buttonObject);
+							button.handler(i, button, buttonObject)
 						}
 					}.bind(this));
-					buttons.push(buttonObject);
+					buttons.push(buttonObject)
 				}
 			}
 			let footer = null;
 			if (parseBoolean(options.footer)) {
-				footer = appendToElement(createTag(".modal-footer"), ...buttons);
+				footer = appendToElement(createTag(".modal-footer"), ...buttons)
 			}
 			let body = null;
 			if (parseBoolean(options.body)) {
 				body = createTag(".modal-body");
 				if (header === null) {
 					if (parseBoolean(options.close)) {
-						body.append(appendToElement(createTag(".text-end"), closeButton));
+						body.append(appendToElement(createTag(".text-end"), closeButton))
 					}
 				}
 				if (options.message !== null) {
-					body.append(createTag("p.message.text-center", options.message));
+					body.append(createTag("p.message.text-center", options.message))
 				}
 				if (options.customContent !== null) {
-					body.append(createTag(".custom-content.mx-auto", options.customContent));
+					body.append(createTag(".custom-content.mx-auto", options.customContent))
 				}
 				if (footer === null) {
 					let buttonPanelClasses = options.buttonPanelClasses.map(e => e.trim()).filter(e => e !== "").join(".");
 					if (buttonPanelClasses !== "") {
-						buttonPanelClasses = "." + buttonPanelClasses;
+						buttonPanelClasses = "." + buttonPanelClasses
 					}
-					appendToElement(body, appendToElement(createTag(".buttons" + buttonPanelClasses), ...buttons));
+					appendToElement(body, appendToElement(createTag(".buttons" + buttonPanelClasses), ...buttons))
 				}
 			}
 			let dialog = appendToElement(createTag(".modal.fade", {
@@ -520,7 +521,7 @@
 			}), appendToElement(createTag(".modal-dialog.modal-dialog-centered", {
 				role: "document"
 			}), appendToElement(createTag(".modal-content"), header, body, footer)));
-			return dialog;
+			return dialog
 		}
 	}
 
@@ -540,7 +541,7 @@
 			escapeKeyCancels: cancellable
 		});
 		dialog.show();
-		return dialog;
+		return dialog
 	}
 
 	function alertDialog(message, title = "Alert", onAccept = null) {
@@ -555,13 +556,13 @@
 			escapeKeyCancels: true
 		});
 		dialog.show();
-		return dialog;
+		return dialog
 	}
 
 	function loadingDialog(message, customContent = null, canCancel = null) {
 		if (typeof customContent === "function") {
 			canCancel = customContent;
-			customContent = null;
+			customContent = null
 		}
 		let dialog = new Dialog({
 			title: null,
@@ -577,10 +578,10 @@
 			footer: false
 		}, canCancel);
 		dialog.show();
-		return dialog;
+		return dialog
 	}
 	if (exports.powerButtons.utils === undefined) {
-		exports.powerButtons.utils = {};
+		exports.powerButtons.utils = {}
 	}
 	Object.assign(exports.powerButtons.utils, {
 		confirmDialog: confirmDialog,
@@ -592,35 +593,35 @@
 		static registerAction(action) {
 			this.actionsRegistered[action.NAME.toLowerCase()] = action;
 			if (exports.powerButtons === undefined) {
-				exports.powerButtons = {};
+				exports.powerButtons = {}
 			}
 			if (exports.powerButtons.defaults === undefined) {
-				exports.powerButtons.defaults = {};
+				exports.powerButtons.defaults = {}
 			}
-			exports.powerButtons.defaults[action.NAME.toLowerCase()] = Object.assign({}, action.DEFAULTS);
+			exports.powerButtons.defaults[action.NAME.toLowerCase()] = Object.assign({}, action.DEFAULTS)
 		}
 		static getActionSettings(action, options) {
 			if (this.actionsRegistered[action.NAME.toLowerCase()] === undefined) {
 				console.error(`The action ${action.NAME} is not registered`);
-				return {};
+				return {}
 			}
 			let defaultsWindow = {};
 			if (exports.powerButtons !== undefined && exports.powerButtons.defaults !== undefined && exports.powerButtons.defaults[action.NAME.toLowerCase()] !== undefined) {
-				defaultsWindow = exports.powerButtons.defaults[action.NAME.toLowerCase()];
+				defaultsWindow = exports.powerButtons.defaults[action.NAME.toLowerCase()]
 			}
-			return Object.assign({}, action.DEFAULTS, defaultsWindow, options);
+			return Object.assign({}, action.DEFAULTS, defaultsWindow, options)
 		}
 		static addAction(el, options = {}) {
 			let powerButton = PowerButtons.addActionSupport(el);
-			powerButton.appendAction(options);
+			powerButton.appendAction(options)
 		}
 		static addActionSupport(el) {
 			if (el._powerButtons === undefined) {
-				el._powerButtons = new PowerButtons(el);
+				el._powerButtons = new PowerButtons(el)
 			} else {
-				el._powerButtons.reset();
+				el._powerButtons.reset()
 			}
-			return el._powerButtons;
+			return el._powerButtons
 		}
 		el = null;
 		current_action = 0;
@@ -634,128 +635,128 @@
 			this.back_onclick = null;
 			if (el.onclick !== undefined && el.onclick !== null) {
 				this.back_onclick = el.onclick;
-				el.onclick = null;
+				el.onclick = null
 			}
-			el.addEventListener("click", this.handlerClick.bind(this));
+			el.addEventListener("click", this.handlerClick.bind(this))
 		}
 		appendAction(options = {}) {
 			if (options.type === undefined) {
-				throw "The type of the action is mandatory";
+				throw "The type of the action is mandatory"
 			}
-			this.actions.push(options);
+			this.actions.push(options)
 		}
 		handlerClick(e) {
 			if (this.current_action >= this.actions.length) {
 				this.current_action = 0;
 				if (typeof this.back_onclick === "function") {
 					if (!this.back_onclick()) {
-						e.preventDefault();
+						e.preventDefault()
 					}
 				}
-				return;
+				return
 			}
 			let currentActionSettings = this.actions[this.current_action];
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			let onNextAction = function (override = false) {
 				if (override) {
-					this.current_action = this.actions.length;
+					this.current_action = this.actions.length
 				} else {
-					this.current_action++;
+					this.current_action++
 				}
 				if (this.current_action >= this.actions.length) {
 					if (this.el.click !== undefined) {
-						this.el.click();
+						this.el.click()
 					} else {
-						this.el.dispatchEvent(new Event(e.type, e));
+						this.el.dispatchEvent(new Event(e.type, e))
 					}
 				} else {
-					this.el.dispatchEvent(new Event(e.type, e));
+					this.el.dispatchEvent(new Event(e.type, e))
 				}
 			}.bind(this);
 			let action = this.constructor.actionsRegistered[currentActionSettings.type];
 			if (action === undefined) {
-				throw `The action ${currentActionSettings.type} is not registered`;
+				throw `The action ${currentActionSettings.type} is not registered`
 			}
-			action.execute(this.el, currentActionSettings, onNextAction, () => this.reset());
+			action.execute(this.el, currentActionSettings, onNextAction, () => this.reset())
 		}
 		reset() {
-			this.current_action = 0;
+			this.current_action = 0
 		}
 		static discoverAll() {
 			Object.entries(this.actionsRegistered).forEach(([key, action]) => {
-				action.discoverAll();
-			});
+				action.discoverAll()
+			})
 		}
 		static discover(els, options = {}) {
 			Object.entries(this.actionsRegistered).forEach(([key, action]) => {
-				action.discover(els, options);
-			});
+				action.discover(els, options)
+			})
 		}
 	}
 	class Action {
 		static NAME = null;
 		static register() {
-			PowerButtons.registerAction(this);
+			PowerButtons.registerAction(this)
 		}
 		static DEFAULTS = {};
 		static extractOptions(el, prefix = null, map = null) {
 			if (prefix === null) {
-				prefix = this.NAME.toLowerCase();
+				prefix = this.NAME.toLowerCase()
 			}
 			if (map === null) {
 				map = {};
-				map[prefix] = prefix;
+				map[prefix] = prefix
 			}
 			let options = {};
 			for (let key in this.DEFAULTS) {
 				let targetKey = key;
 				if (map[targetKey] !== undefined) {
-					targetKey = map[targetKey];
+					targetKey = map[targetKey]
 				} else {
-					targetKey = prefix + CamelToCamel(targetKey);
+					targetKey = prefix + CamelToCamel(targetKey)
 				}
 				if (el.dataset[targetKey] !== undefined) {
-					options[key] = el.dataset[targetKey];
+					options[key] = el.dataset[targetKey]
 				}
 			}
-			return options;
+			return options
 		}
 		static initialize(el, values = {}) {
 			PowerButtons.addAction(el, Object.assign({
 				type: this.NAME.toLowerCase()
-			}, values));
+			}, values))
 		}
 		static discoverAll() {
 			let prefix = this.NAME.toLowerCase();
-			this.discover(document.querySelectorAll(`[data-${prefix}]`));
+			this.discover(document.querySelectorAll(`[data-${prefix}]`))
 		}
 		static discover(els, options = {}, skipInitialized = true) {
 			if (els.length === undefined) {
-				els = [els];
+				els = [els]
 			}
 			let prefix = this.NAME.toLowerCase();
 			for (let el of els) {
 				if (skipInitialized && el._powerButtons !== undefined && el._powerButtons._discover !== undefined && el._powerButtons._discover.indexOf(prefix) !== -1) {
-					continue;
+					continue
 				}
 				if (el.dataset[prefix] === undefined) {
-					continue;
+					continue
 				}
 				let currentOptions = Object.assign(this.extractOptions(el, prefix), options);
 				this.initialize(el, currentOptions);
 				if (el._powerButtons !== undefined) {
 					if (el._powerButtons._discover === undefined) {
-						el._powerButtons._discover = [];
+						el._powerButtons._discover = []
 					}
 					if (!el._powerButtons._discover.includes(prefix)) {
-						el._powerButtons._discover.push(prefix);
+						el._powerButtons._discover.push(prefix)
 					}
 				}
 			}
 		}
 		static execute(el, options, onNextAction, onCancelActions) {
-			throw new Error("The execute method must be implemented by the derived class");
+			throw new Error("The execute method must be implemented by the derived class")
 		}
 	}
 	class ActionOverride extends Action {
@@ -774,21 +775,21 @@
 			let result = null;
 			let bindObject = searchForm(settings.form);
 			if (bindObject === null) {
-				bindObject = document;
+				bindObject = document
 			}
 			try {
 				if (typeof settings.override === "function") {
-					result = settings.override.bind(bindObject)();
+					result = settings.override.bind(bindObject)()
 				} else if (typeof settings.override === "string") {
 					result = function () {
-						return eval(settings.override);
-					}.bind(bindObject)();
+						return eval(settings.override)
+					}.bind(bindObject)()
 				} else {
-					result = parseBoolean(settings.override);
+					result = parseBoolean(settings.override)
 				}
 			} catch (e) {
 				console.error("Error executing override function", e);
-				result = false;
+				result = false
 			}
 			if (result) {
 				if (settings.overridden !== null || settings.customContent !== null || settings.title !== null) {
@@ -801,14 +802,14 @@
 						escapeKeyCancels: settings.escapeKey,
 						close: settings.buttonClose
 					}, null, function (result) {
-						onNextAction(true);
+						onNextAction(true)
 					});
-					dialog.show();
+					dialog.show()
 				} else {
-					onNextAction(true);
+					onNextAction(true)
 				}
 			} else {
-				onNextAction();
+				onNextAction()
 			}
 		}
 	}
@@ -833,21 +834,21 @@
 			let result = null;
 			let bindObject = searchForm(settings.form);
 			if (bindObject === null) {
-				bindObject = document;
+				bindObject = document
 			}
 			try {
 				if (typeof settings.verify === "function") {
-					result = settings.verify.bind(bindObject)();
+					result = settings.verify.bind(bindObject)()
 				} else if (typeof settings.verify === "string") {
 					result = function () {
-						return eval(settings.verify);
-					}.bind(bindObject)();
+						return eval(settings.verify)
+					}.bind(bindObject)()
 				} else {
-					result = parseBoolean(settings.verify);
+					result = parseBoolean(settings.verify)
 				}
 			} catch (e) {
 				console.error("Error executing verification function", e);
-				result = false;
+				result = false
 			}
 			let dialog = null;
 			let onVerificationSuccess = onNextAction;
@@ -863,9 +864,9 @@
 						close: settings.buttonClose
 					}, null, function (result) {
 						if (onVerificationSuccess !== null) {
-							onVerificationSuccess();
+							onVerificationSuccess()
 						}
-					});
+					})
 				}
 			} else {
 				if (settings.notVerified !== null || settings.customContentNotVerified !== null || settings.titleNotVerified !== null) {
@@ -878,21 +879,21 @@
 						close: settings.buttonClose
 					}, null, function (result) {
 						if (onVerificationFailure !== null) {
-							onVerificationFailure();
+							onVerificationFailure()
 						}
-					});
+					})
 				}
 			}
 			if (dialog !== null) {
-				dialog.show();
+				dialog.show()
 			} else {
 				if (result) {
 					if (onVerificationSuccess !== null) {
-						onVerificationSuccess();
+						onVerificationSuccess()
 					}
 				} else {
 					if (onVerificationFailure !== null) {
-						onVerificationFailure();
+						onVerificationFailure()
 					}
 				}
 			}
@@ -913,9 +914,9 @@
 		static extractOptions(el, prefix = null, map = null) {
 			let options = super.extractOptions(el, prefix, map);
 			if (options.confirm.trim() == "") {
-				delete options.confirm;
+				delete options.confirm
 			}
-			return options;
+			return options
 		}
 		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
@@ -929,15 +930,15 @@
 			}, null, function (result) {
 				if (result === 0) {
 					if (onNextAction !== null) {
-						onNextAction();
+						onNextAction()
 					}
 				} else {
 					if (onCancelActions !== null) {
-						onCancelActions();
+						onCancelActions()
 					}
 				}
 			});
-			dialog.show();
+			dialog.show()
 		}
 	}
 	ActionConfirm.register();
@@ -956,24 +957,24 @@
 		static extractOptions(el, prefix = null, map = null) {
 			return super.extractOptions(el, prefix, {
 				task: "asynctask"
-			});
+			})
 		}
 		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
 			if (settings.task === null) {
 				console.error("The task to execute cannot be null");
-				return;
+				return
 			}
 			let task = null;
 			if (typeof settings.task === "string") {
 				task = async function () {
-					return await eval(settings.task);
-				};
+					return await eval(settings.task)
+				}
 			} else if (typeof settings.task === "function") {
-				task = settings.task;
+				task = settings.task
 			} else {
 				console.error("The task to execute must be either a string or a function");
-				return;
+				return
 			}
 			let buttons = [];
 			let cancelHandler = null;
@@ -981,12 +982,12 @@
 				buttons = [settings.buttonCancel];
 				if (typeof settings.cancel === "string") {
 					cancelHandler = function () {
-						eval(settings.cancel);
-					};
+						eval(settings.cancel)
+					}
 				} else if (typeof settings.cancel === "function") {
-					cancelHandler = settings.cancel;
+					cancelHandler = settings.cancel
 				} else {
-					console.error("The cancel handler must be either a string or a function");
+					console.error("The cancel handler must be either a string or a function")
 				}
 			}
 			let dialog = Dialog.create({
@@ -1000,17 +1001,17 @@
 				footer: options.footer !== undefined ? settings.footer : cancelHandler !== null
 			}, function () {
 				cancelHandler();
-				onCancelActions();
+				onCancelActions()
 			}, function (result) {
 				if (onNextAction !== null) {
-					onNextAction();
+					onNextAction()
 				}
 			});
 			dialog.show().then(function () {
 				task().finally(function () {
-					dialog.hide();
-				});
-			});
+					dialog.hide()
+				})
+			})
 		}
 	}
 	ActionAsyncTask.register();
@@ -1039,10 +1040,10 @@
 				footer: options.footer !== undefined ? settings.footer : settings.buttonAccept !== null && settings.buttonAccept != ""
 			}, null, function (result) {
 				if (onNextAction !== null) {
-					onNextAction();
+					onNextAction()
 				}
 			});
-			dialog.show();
+			dialog.show()
 		}
 	}
 	ActionShowMessage.register();
@@ -1061,20 +1062,20 @@
 				if (key.startsWith(prefix)) {
 					let fieldname = key.substring(prefix.length);
 					if (fieldname === "") {
-						continue;
+						continue
 					}
 					if (fieldname[0] !== fieldname[0].toUpperCase()) {
-						continue;
+						continue
 					}
 					fieldname = fieldname.toLocaleLowerCase();
-					fields[fieldname] = el.dataset[key];
+					fields[fieldname] = el.dataset[key]
 				}
 			}
 			if (options.fields === undefined) {
-				options.fields = {};
+				options.fields = {}
 			}
 			Object.assign(options.fields, fields);
-			return options;
+			return options
 		}
 		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
@@ -1083,26 +1084,26 @@
 			let elements = [];
 			if (settings.form == "") {
 				if (el.form !== null) {
-					formToSet = el.form;
+					formToSet = el.form
 				} else {
-					elements = Array.from(document.querySelectorAll("input")).filter(input => input.form === null);
+					elements = Array.from(document.querySelectorAll("input")).filter(input => input.form === null)
 				}
 			} else {
 				formToSet = searchForm(settings.form);
 				if (formToSet === null) {
 					console.error(`Form not found ${settings.form}`);
-					return;
+					return
 				}
 			}
 			if (formToSet !== null) {
-				elements = Array.from(formToSet.elements);
+				elements = Array.from(formToSet.elements)
 			}
 			elements.forEach(element => {
 				if (element.name !== "") {
-					inputFields[element.name.toLocaleLowerCase()] = element;
+					inputFields[element.name.toLocaleLowerCase()] = element
 				}
 				if (element.id !== "") {
-					inputFields[element.id.toLocaleLowerCase()] = element;
+					inputFields[element.id.toLocaleLowerCase()] = element
 				}
 			});
 			for (let field in settings.fields) {
@@ -1111,16 +1112,16 @@
 					let result = getValueWithJavascriptSupport(value, formToSet !== null ? formToSet : inputFields);
 					if (typeof result === "function") {
 						try {
-							result = result();
+							result = result()
 						} catch (e) {
 							console.error(`Error executing ${value}`, e);
-							continue;
+							continue
 						}
 					}
-					inputFields[field].value = result;
+					inputFields[field].value = result
 				}
 			}
-			onNextAction();
+			onNextAction()
 		}
 	}
 	ActionFormset.register();
@@ -1142,10 +1143,10 @@
 				if (key.startsWith(prefix)) {
 					let fieldname = key.substring(prefix.length);
 					if (fieldname === "") {
-						continue;
+						continue
 					}
 					if (fieldname[0] !== fieldname[0].toUpperCase()) {
-						continue;
+						continue
 					}
 					switch (options.convertCase) {
 					case "kebab":
@@ -1158,37 +1159,37 @@
 						fieldname = pascalToCamel(fieldname);
 						break;
 					case "pascal":
-						break;
+						break
 					}
-					fields[fieldname] = el.dataset[key];
+					fields[fieldname] = el.dataset[key]
 				}
 			}
 			if (options.fields === undefined) {
-				options.fields = {};
+				options.fields = {}
 			}
 			Object.assign(options.fields, fields);
-			return options;
+			return options
 		}
 		static initialize(el, values = {}) {
 			let settings = PowerButtons.getActionSettings(this, values);
 			let form = document.createElement("form");
 			form.method = settings.method;
 			if (!isEmpty(settings.formbutton)) {
-				form.action = settings.formbutton;
+				form.action = settings.formbutton
 			}
 			if (settings.formId !== null) {
-				form.id = settings.formId;
+				form.id = settings.formId
 			}
 			let cssClasses = settings.formClass.split(" ");
 			for (var i = 0; i < cssClasses.length; i++) {
 				if (!isEmpty(cssClasses[i])) {
-					form.classList.add(cssClasses[i]);
+					form.classList.add(cssClasses[i])
 				}
 			}
 			el.type = "submit";
 			let fields = {};
 			for (let fieldName in settings.fields) {
-				fields[fieldName] = getValueWithJavascriptSupport(settings.fields[fieldName], form);
+				fields[fieldName] = getValueWithJavascriptSupport(settings.fields[fieldName], form)
 			}
 			let pendingFields = {};
 			for (let fieldName in fields) {
@@ -1197,18 +1198,18 @@
 				input.name = fieldName;
 				if (typeof fields[fieldName] === "function") {
 					input.value = "";
-					pendingFields[fieldName] = fields[fieldName];
+					pendingFields[fieldName] = fields[fieldName]
 				} else {
-					input.value = fields[fieldName];
+					input.value = fields[fieldName]
 				}
-				form.appendChild(input);
+				form.appendChild(input)
 			}
 			el.parentNode.replaceChild(form, el);
 			form.appendChild(el);
 			if (Object.keys(pendingFields).length > 0) {
 				settings.fields = pendingFields;
 				settings._formObject = form;
-				super.initialize(el, settings);
+				super.initialize(el, settings)
 			}
 		}
 		static execute(el, options, onNextAction, onCancelActions) {
@@ -1217,18 +1218,18 @@
 			for (let fieldName in settings.fields) {
 				try {
 					let value = settings.fields[fieldName]();
-					settings._formObject[fieldName].value = value;
+					settings._formObject[fieldName].value = value
 				} catch (e) {
 					console.error(`Error obtaining value for field ${fieldName}: ${e}`);
-					error = true;
+					error = true
 				}
 			}
 			if (error) {
-				onCancelActions();
+				onCancelActions()
 			} else {
-				onNextAction();
+				onNextAction()
 			}
 		}
 	}
-	ActionFormButton.register();
-})(window);
+	ActionFormButton.register()
+})(imports);

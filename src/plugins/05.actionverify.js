@@ -24,10 +24,6 @@ class ActionVerify extends Action {
         buttonClose: false,
         // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
         escapeKey: true,
-        // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
-        header: true,
-        // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
-        footer: true
     }
 
     static execute(el, options, onNextAction, onCancelActions) {

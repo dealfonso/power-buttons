@@ -141,10 +141,15 @@ class PowerButtons {
 
         /**
          * This is a handler for the accept button of the dialog (or the confirmation button), to execute the next action by simulating a click event
+         * @param {*} override, if true, it will override any other action and will assume that the callee was the last one
          */
-        let onNextAction = function() {
+        let onNextAction = function(override = false) {
             // Continue with the action, by simulating the common click action
-            this.current_action++;
+            if (override) {
+                this.current_action = this.actions.length;
+            } else {
+                this.current_action++;
+            }
 
             // If it is the last confirmation, we'll execute the legacy click event (if exists; otherwise we'll dispatch an event to fire jquery events (click method already fires them))
             if (this.current_action >= this.actions.length) {

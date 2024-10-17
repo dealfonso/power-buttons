@@ -104,7 +104,7 @@ exports.powerButtons = function(param1, param2 = null, param3 = null) {
     }
 };
 
-exports.powerButtons.version = '2.1.0';
+exports.powerButtons.version = '2.1.2';
 exports.powerButtons.plugins = function() {
     return Object.keys(PowerButtons.actionsRegistered);
 }
@@ -863,10 +863,15 @@ Object.assign(exports.powerButtons.utils, {
 
         /**
          * This is a handler for the accept button of the dialog (or the confirmation button), to execute the next action by simulating a click event
+         * @param {*} override, if true, it will override any other action and will assume that the callee was the last one
          */
-        let onNextAction = function() {
+        let onNextAction = function(override = false) {
             // Continue with the action, by simulating the common click action
-            this.current_action++;
+            if (override) {
+                this.current_action = this.actions.length;
+            } else {
+                this.current_action++;
+            }
 
             // If it is the last confirmation, we'll execute the legacy click event (if exists; otherwise we'll dispatch an event to fire jquery events (click method already fires them))
             if (this.current_action >= this.actions.length) {
@@ -1053,7 +1058,76 @@ Object.assign(exports.powerButtons.utils, {
         throw new Error("The execute method must be implemented by the derived class");
     }
 }
-class ActionVerify extends Action {
+class ActionOverride extends Action {
+    static NAME = "Override";
+
+    static DEFAULTS = {
+        // The function to call to check for overriding the next actions. It must return a true or false value. If it is an string, it will be evaluated as javascript, using _eval_
+        override: null,
+        // The form to bind the verification to. If it is a string, it will be interpreted as a selector (it is not verified if it is a form or any other object). If null, the verification will be bound to the document
+        form: null,
+        // The content of the message to show to the user if `override` evaluates to true (it can be either plain text or a HTML fragment)
+        overridden: null,
+        // A custom content to show to the user under the message when `override` evaluates to true (it can be either plain text or a HTML fragment)
+        customContent: null,
+        // The content of the title of the dialog when `override` evaluates to true (it can be either plain text or a HTML fragment)
+        title: null,
+        // The content for the button that confirms the action (it can be either plain text or a HTML fragment)
+        buttonAccept: "Accept",
+        // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
+        escapeKey: true,
+    }
+
+    static execute(el, options, onNextAction, onCancelActions) {
+        // We merge the options with the defaults to get a valid settings object
+        let settings = PowerButtons.getActionSettings(this, options);
+
+        let result = null;
+        let bindObject = searchForm(settings.form);
+        if (bindObject === null) {
+            bindObject = document;
+        }
+        try {
+            if (typeof(settings.override) === 'function') {
+                result = settings.override.bind(bindObject)();
+            } else if (typeof(settings.override) === 'string') {
+                result = function() {
+                    return eval(settings.override)
+                }.bind(bindObject)();
+            } else {
+                result = parseBoolean(settings.override);
+            }
+        } catch (e) {
+            console.error("Error executing override function", e);
+            result = false;
+        }
+
+        if (result) {
+            if ((settings.overridden !== null) || (settings.customContent !== null) || (settings.title !== null)) {
+                let dialog = null;
+                dialog = Dialog.create({
+                    title: settings.title,
+                    message: settings.overridden,
+                    customContent: settings.customContent,
+                    buttons: [ settings.buttonAccept ],
+                    escapeKeyCancels: settings.escapeKey,
+                    close: settings.buttonClose,
+                }, null, function(result) {
+                    // Let's override the next actions, to get to the final action
+                    onNextAction(true);
+                });
+                dialog.show();
+            } else {
+                // Let's override the next actions, to get to the final action
+                onNextAction(true);
+            }
+        } else {
+            onNextAction();
+        }
+    }
+}
+
+ActionOverride.register();class ActionVerify extends Action {
     static NAME = "Verify";
 
     static DEFAULTS = {
@@ -1079,10 +1153,6 @@ class ActionVerify extends Action {
         buttonClose: false,
         // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
         escapeKey: true,
-        // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
-        header: true,
-        // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
-        footer: true
     }
 
     static execute(el, options, onNextAction, onCancelActions) {

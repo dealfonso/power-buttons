@@ -166,6 +166,23 @@ The default values for the options of the _showmessage_ button are the next:
     data-showmessage-footer="true">test showmessage</button>
 ```
 
+### Override Actions
+
+This is a special case for the actions chain that is intended to override the next actions chained for this button. If is useful to enable a simple workflow for the power-actions.
+
+The basic syntax to use this plugin is to include the attribute _data-override_ in the button tag (along with other actions) such as the next one:
+```html
+<button type="button" 
+    data-override="window.fileExists()"
+    data-confirm=...
+>upload file</button>
+```
+
+**Use case**: A submit button that may overwrite a file. It is possible to use the `confirm` action to ask the user if he is sure to overwrite the file. But if the file did not exist, the app should not ask for confirmation. In this case, the `override` action can be used to skip the `confirm` action if the file does not exist (__*__ in the declarative way, the `override` action is the first action to be executed).
+```html
+<button type="button" data-override="window.fileExists()" data-confirm="Are you sure you want to overwrite the file?" onclick="alert('file overwritten')">upload file</button>
+```
+
 ### FormSet Button
 
 The _formset_ button is a button that sets the values of a form fields prior to executing its real action. It is useful for (e.g.) setting a hidden field in a form prior to submitting it, or pre-filling a form.
@@ -335,6 +352,7 @@ If using the declarative method, there is a fixed order:
 1. _confirm_
 1. _asynctask_
 1. _showmessage_
+1. _override_
 1. _formset_
 1. _formbutton_ (set the field values that depend on a function)
 1. the real action (i.e. `onclick` handler)
@@ -431,6 +449,27 @@ footer: true
 ```
 
 The equivalent for html5 attributes are the snake-case version of each of them, with the prefix `data-showmessage-`; e.g. `data-showmessage-button-accept`, `data-showmessage-title`, etc.
+
+#### _override_
+
+```javascript
+// The function to call to check for overriding the next actions. It must return a true or false value. If it is an string, it will be evaluated as javascript, using _eval_
+override: null,
+// The form to bind the verification to. If it is a string, it will be interpreted as a selector (it is not verified if it is a form or any other object). If null, the verification will be bound to the document
+form: null,
+// The content of the message to show to the user if `override` evaluates to true (it can be either plain text or a HTML fragment)
+overridden: null,
+// A custom content to show to the user under the message when `override` evaluates to true (it can be either plain text or a HTML fragment)
+customContent: null,
+// The content of the title of the dialog when `override` evaluates to true (it can be either plain text or a HTML fragment)
+title: null,
+// The content for the button that confirms the action (it can be either plain text or a HTML fragment)
+buttonAccept: "Accept",
+// If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
+escapeKey: true,
+```
+
+The equivalent for html5 attributes are the snake-case version of each of them, with the prefix `data-override-`; e.g. `data-override-button-accept`, `data-override-title`, etc.
 
 #### _formset_
 

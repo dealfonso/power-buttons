@@ -100,7 +100,7 @@
 			PowerButtons.discover(els, options)
 		}
 	};
-	exports.powerButtons.version = "2.1.0";
+	exports.powerButtons.version = "2.1.2";
 	exports.powerButtons.plugins = function () {
 		return Object.keys(PowerButtons.actionsRegistered)
 	};
@@ -657,8 +657,12 @@
 			let currentActionSettings = this.actions[this.current_action];
 			e.preventDefault();
 			e.stopImmediatePropagation();
-			let onNextAction = function () {
-				this.current_action++;
+			let onNextAction = function (override = false) {
+				if (override) {
+					this.current_action = this.actions.length
+				} else {
+					this.current_action++
+				}
 				if (this.current_action >= this.actions.length) {
 					if (this.el.click !== undefined) {
 						this.el.click()
@@ -754,6 +758,61 @@
 			throw new Error("The execute method must be implemented by the derived class")
 		}
 	}
+	class ActionOverride extends Action {
+		static NAME = "Override";
+		static DEFAULTS = {
+			override: null,
+			form: null,
+			overridden: null,
+			customContent: null,
+			title: null,
+			buttonAccept: "Accept",
+			escapeKey: true
+		};
+		static execute(el, options, onNextAction, onCancelActions) {
+			let settings = PowerButtons.getActionSettings(this, options);
+			let result = null;
+			let bindObject = searchForm(settings.form);
+			if (bindObject === null) {
+				bindObject = document
+			}
+			try {
+				if (typeof settings.override === "function") {
+					result = settings.override.bind(bindObject)()
+				} else if (typeof settings.override === "string") {
+					result = function () {
+						return eval(settings.override)
+					}.bind(bindObject)()
+				} else {
+					result = parseBoolean(settings.override)
+				}
+			} catch (e) {
+				console.error("Error executing override function", e);
+				result = false
+			}
+			if (result) {
+				if (settings.overridden !== null || settings.customContent !== null || settings.title !== null) {
+					let dialog = null;
+					dialog = Dialog.create({
+						title: settings.title,
+						message: settings.overridden,
+						customContent: settings.customContent,
+						buttons: [settings.buttonAccept],
+						escapeKeyCancels: settings.escapeKey,
+						close: settings.buttonClose
+					}, null, function (result) {
+						onNextAction(true)
+					});
+					dialog.show()
+				} else {
+					onNextAction(true)
+				}
+			} else {
+				onNextAction()
+			}
+		}
+	}
+	ActionOverride.register();
 	class ActionVerify extends Action {
 		static NAME = "Verify";
 		static DEFAULTS = {
@@ -767,9 +826,7 @@
 			titleVerified: null,
 			buttonAccept: "Accept",
 			buttonClose: false,
-			escapeKey: true,
-			header: true,
-			footer: true
+			escapeKey: true
 		};
 		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
