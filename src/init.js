@@ -104,7 +104,7 @@ exports.powerButtons = function(param1, param2 = null, param3 = null) {
     }
 };
 
-exports.powerButtons.version = '2.1.2';
+exports.powerButtons.version = '2.2.0';
 exports.powerButtons.plugins = function() {
     return Object.keys(PowerButtons.actionsRegistered);
 }
