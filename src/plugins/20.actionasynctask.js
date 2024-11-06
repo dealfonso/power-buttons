@@ -17,7 +17,11 @@ class ActionAsyncTask extends Action {
         // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
         header: true,
         // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
-        footer: true
+        footer: true,
+        // The class to apply to the dialog
+        dialogClass: "",
+        // The selector to focus when the dialog is shown
+        focus: "",
     }
 
     // Overwrite to rename the data attribute
@@ -73,6 +77,8 @@ class ActionAsyncTask extends Action {
             close: false,
             header: (options.header !== undefined)?settings.header : (settings.title!==null&&settings.title!= ""),
             footer: (options.footer !== undefined)?settings.footer : (cancelHandler!==null),
+            dialogClass: settings.dialogClass,
+            focus: settings.focus,
         }, function() {
                 cancelHandler();
                 onCancelActions();

@@ -106,7 +106,11 @@ The default values for the options are the next:
     data-confirm-button-confirm="Confirm"
     data-confirm-button-cancel="Cancel"
     data-confirm-button-close="true"
-    data-confirm-escape-key="true">clickme</button>
+    data-confirm-escape-key="true"
+    data-confirm-on-confirm=""
+    data-confirm-dialog-class=""
+    data-confirm-focus=""
+    >clickme</button>
 ```
 
 ### Verify Button
@@ -137,7 +141,9 @@ The default values for the options of the _verify_ button are the next:
     data-verify-button-close="false"
     data-verify-escape-key="true"
     data-verify-header="true"
-    data-verify-footer="true">test verify</button>
+    data-verify-footer="true"
+    data-verify-dialog-class=""
+    data-verify-focus="">test verify</button>
 ```
 
 ### ShowMessage Button
@@ -163,7 +169,9 @@ The default values for the options of the _showmessage_ button are the next:
     data-showmessage-button-close="true"
     data-showmessage-escape-key="true"
     data-showmessage-header="true"
-    data-showmessage-footer="true">test showmessage</button>
+    data-showmessage-footer="true"
+    data-showmessage-dialog-class=""
+    data-showmessage-focus="">test showmessage</button>
 ```
 
 ### Override Actions
@@ -257,7 +265,9 @@ The default values for the options of the _asynctask_ button are the next:
     data-asynctask-button-cancel="Cancel"
     data-asynctask-cancel=""
     data-asynctask-header="true"
-    data-asynctask-footer="true">async task</button>
+    data-asynctask-footer="true"
+    data-asynctask-dialog-class=""
+    data-asynctask-focus="">async task</button>
 ```
 
 #### A note on the tasks to execute
@@ -401,7 +411,11 @@ escapeKey: true,
 // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
 header: true,
 // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
-footer: true
+footer: true,
+// The class to apply to the dialog
+dialogClass: "",
+// The selector to focus when the dialog is shown
+focus: ""
 ```
 
 The equivalent for html5 attributes are the snake-case version of each of them, with the prefix `data-verify-`; e.g. `data-verify-button-accept`, `data-verify-title-not-verified`, etc.
@@ -419,10 +433,16 @@ title: "The action requires confirmation",
 buttonConfirm: "Confirm",
 // The content for the button that cancels the action (it can be either plain text or a HTML fragment)
 buttonCancel: "Cancel",
+// The function to call when the action is confirmed. If it is a string, it will be evaluated as javascript, using _eval_
+onConfirm: null,
 // If falshi (i.e. null, 0, false, "false"), the button to close the dialog will not be shown
 buttonClose: true,
 // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
-escapeKey: true        
+escapeKey: true,
+// The class to apply to the dialog
+dialogClass: "",
+// The selector to focus when the dialog is shown
+focus: ""
 ```
 
 The equivalent for html5 attributes are the snake-case version of each of them, with the prefix `data-confirm-`; e.g. `data-confirm-button-confirm`, `data-confirm-title`, etc.
@@ -445,7 +465,11 @@ buttonClose: true,
 // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
 header: true,
 // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
-footer: true
+footer: true,
+// The class to apply to the dialog
+dialogClass: "",
+// The selector to focus when the dialog is shown
+focus: ""
 ```
 
 The equivalent for html5 attributes are the snake-case version of each of them, with the prefix `data-showmessage-`; e.g. `data-showmessage-button-accept`, `data-showmessage-title`, etc.
@@ -467,6 +491,10 @@ title: null,
 buttonAccept: "Accept",
 // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
 escapeKey: true,
+// The class to apply to the dialog
+dialogClass: "",
+// The selector to focus when the dialog is shown
+focus: ""
 ```
 
 The equivalent for html5 attributes are the snake-case version of each of them, with the prefix `data-override-`; e.g. `data-override-button-accept`, `data-override-title`, etc.
@@ -523,7 +551,11 @@ cancel: null,
 // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
 header: true,
 // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
-footer: true
+footer: true,
+// The class to apply to the dialog
+dialogClass: "",
+// The selector to focus when the dialog is shown
+focus: ""
 ```
 
 The `task` and `cancel` parameters may be either functions, promises or strings containing javascript code. If they are functions, they will be executed. If they are promises, they will be awaited for their finalization. If they are strings, they will be evaluated as javascript code.
