@@ -104,7 +104,7 @@ exports.powerButtons = function(param1, param2 = null, param3 = null) {
     }
 };
 
-exports.powerButtons.version = '2.1.2';
+exports.powerButtons.version = '2.2.0';
 exports.powerButtons.plugins = function() {
     return Object.keys(PowerButtons.actionsRegistered);
 }
@@ -418,6 +418,10 @@ function isEmpty(obj) {
         // If true, the dialog will have a close button (i.e. cross) in the top right corner. Clicking this button will call the
         //   onButton function with the index -1
         close: true,
+        // Classes to add to the dialog
+        dialogClass: "",
+        // A selector in which to call the focus function when the dialog is shown (i.e. the element that will receive the focus)
+        focus: ""
     };
 
     // The HTML element of the dialog
@@ -486,6 +490,7 @@ function isEmpty(obj) {
                 this.onHidden(this.result, null);
             }
         }
+        this.dispose();
     }
 
     /**
@@ -524,7 +529,11 @@ function isEmpty(obj) {
             this.onHidden = onHidden;
         }
         this.modal.show();
-        return promiseForEvent(this.dialog, "shown.bs.modal")
+        return promiseForEvent(this.dialog, "shown.bs.modal").then(() => {
+            if (this.options.focus !== "") {
+                this.dialog.querySelector(this.options.focus)?.focus();
+            }
+        });
     }
 
     /**
@@ -565,7 +574,7 @@ function isEmpty(obj) {
 
         let closeButton = null;
         if (parseBoolean(options.close)) {
-            closeButton = createTag("button.close.btn-close", { type: "button", "aria-label": "Close" });
+            closeButton = createTag("button.close.btn-close", { tabindex: "-1", type: "button", "aria-label": "Close" });
             closeButton.addEventListener("click", () => this._handleButton(-1, null, closeButton));
         }
 
@@ -599,7 +608,7 @@ function isEmpty(obj) {
                 }
 
                 // We'll create the button object
-                let buttonObject = createTag("button.btn" + buttonClass + ".button" + i, { type: "button" }, button.text);
+                let buttonObject = createTag("button.btn" + buttonClass + ".button" + i, { type: "button", tabindex: i+1 }, button.text);
 
                 // Let's add the handler for the button. We do not need to store it because we are not removing it
                 buttonObject.addEventListener("click", function() {
@@ -641,8 +650,13 @@ function isEmpty(obj) {
             }
         }
 
+        let dialogClasses = options.dialogClass.split(" ").map((e) => e.trim()).filter((e) => e !== "").join(".");
+        if (dialogClasses !== "") {
+            dialogClasses = "." + dialogClasses;
+        }
+
         let dialog = appendToElement(
-            createTag(".modal.fade", { tabindex : "-1", role : "dialog", "aria-hidden" : "true", "data-keyboard": "false"  }),
+            createTag(dialogClasses + ".modal.fade", { tabindex : "-1", role : "dialog", "aria-hidden" : "true", "data-keyboard": "false"  }),
                 appendToElement(createTag(".modal-dialog.modal-dialog-centered", { role : "document" }),
                     appendToElement(createTag(".modal-content"),
                         header,
@@ -1076,6 +1090,10 @@ class ActionOverride extends Action {
         buttonAccept: "Accept",
         // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
         escapeKey: true,
+        // The class to apply to the dialog
+        dialogClass: "",
+        // The selector to focus when the dialog is shown
+        focus: "",
     }
 
     static execute(el, options, onNextAction, onCancelActions) {
@@ -1112,6 +1130,8 @@ class ActionOverride extends Action {
                     buttons: [ settings.buttonAccept ],
                     escapeKeyCancels: settings.escapeKey,
                     close: settings.buttonClose,
+                    dialogClass: settings.dialogClass,
+                    focus: settings.focus,        
                 }, null, function(result) {
                     // Let's override the next actions, to get to the final action
                     onNextAction(true);
@@ -1153,6 +1173,10 @@ ActionOverride.register();class ActionVerify extends Action {
         buttonClose: false,
         // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
         escapeKey: true,
+        // The class to apply to the dialog
+        dialogClass: "",
+        // The selector to focus when the dialog is shown
+        focus: "",
     }
 
     static execute(el, options, onNextAction, onCancelActions) {
@@ -1192,6 +1216,8 @@ ActionOverride.register();class ActionVerify extends Action {
                     buttons: [ settings.buttonAccept ],
                     escapeKeyCancels: settings.escapeKey,
                     close: settings.buttonClose,
+                    dialogClass: settings.dialogClass,
+                    focus: settings.focus,        
                 }, null, function(result) {
                     if (onVerificationSuccess !== null) {
                         onVerificationSuccess();
@@ -1207,6 +1233,8 @@ ActionOverride.register();class ActionVerify extends Action {
                     buttons: [ settings.buttonAccept ],
                     escapeKeyCancels: settings.escapeKey,
                     close: settings.buttonClose,
+                    dialogClass: settings.dialogClass,
+                    focus: settings.focus,        
                 }, null, function(result) {
                     if (onVerificationFailure !== null) {
                         onVerificationFailure();
@@ -1247,8 +1275,14 @@ ActionVerify.register();class ActionConfirm extends Action {
         buttonCancel: "Cancel",
         // If falshi (i.e. null, 0, false, "false"), the button to close the dialog will not be shown
         buttonClose: true,
+        // The function to call when the action is confirmed (prior to the next action)
+        onConfirm: null,
         // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
-        escapeKey: true        
+        escapeKey: true,
+        // The class to apply to the dialog
+        dialogClass: "",
+        // The selector to focus when the dialog is shown
+        focus: "",
     };
 
     static extractOptions(el, prefix = null, map = null) {
@@ -1271,9 +1305,22 @@ ActionVerify.register();class ActionConfirm extends Action {
             buttons: [ settings.buttonConfirm, settings.buttonCancel ],
             escapeKeyCancels: settings.escapeKey,
             close: settings.buttonClose,
+            dialogClass: settings.dialogClass,
+            focus: settings.focus,
         }, null, function(result) {
             if (result === 0) {
                 // The user has confirmed the action
+                if (settings.onConfirm !== null) {
+                    // Execute the onConfirm function, if any, either as a function or as a string (if it's a string, we'll eval it)
+                    let result = null;
+                    if (typeof(settings.onConfirm) === 'function') {
+                        result = settings.onConfirm.bind(document)();
+                    } else if (typeof(settings.onConfirm) === 'string') {
+                        result = function() {
+                            return eval(settings.onConfirm)
+                        }.bind(document)();
+                    }
+                }
                 if (onNextAction !== null) {
                     onNextAction();
                 }
@@ -1309,7 +1356,11 @@ ActionConfirm.register();class ActionAsyncTask extends Action {
         // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
         header: true,
         // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
-        footer: true
+        footer: true,
+        // The class to apply to the dialog
+        dialogClass: "",
+        // The selector to focus when the dialog is shown
+        focus: "",
     }
 
     // Overwrite to rename the data attribute
@@ -1365,6 +1416,8 @@ ActionConfirm.register();class ActionAsyncTask extends Action {
             close: false,
             header: (options.header !== undefined)?settings.header : (settings.title!==null&&settings.title!= ""),
             footer: (options.footer !== undefined)?settings.footer : (cancelHandler!==null),
+            dialogClass: settings.dialogClass,
+            focus: settings.focus,
         }, function() {
                 cancelHandler();
                 onCancelActions();
@@ -1404,7 +1457,11 @@ ActionAsyncTask.register();class ActionShowMessage extends Action {
         // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
         header: true,
         // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
-        footer: true
+        footer: true,
+        // The class to apply to the dialog
+        dialogClass: "",
+        // The selector to focus when the dialog is shown
+        focus: "",
     }
 
     static execute(el, options, onNextAction, onCancelActions) {
@@ -1421,6 +1478,8 @@ ActionAsyncTask.register();class ActionShowMessage extends Action {
             close: settings.buttonClose,
             header: (options.header !== undefined)?settings.header : (settings.title!==null&&settings.title!= ""),
             footer: (options.footer !== undefined)?settings.footer : (settings.buttonAccept!==null&&settings.buttonAccept!= ""),
+            dialogClass: settings.dialogClass,
+            focus: settings.focus,
         }, null, function(result) {
             if (onNextAction !== null) {
                 onNextAction();

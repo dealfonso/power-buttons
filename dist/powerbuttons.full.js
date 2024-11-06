@@ -100,7 +100,7 @@
 			PowerButtons.discover(els, options)
 		}
 	};
-	exports.powerButtons.version = "2.1.2";
+	exports.powerButtons.version = "2.2.0";
 	exports.powerButtons.plugins = function () {
 		return Object.keys(PowerButtons.actionsRegistered)
 	};
@@ -346,7 +346,9 @@
 			header: true,
 			footer: true,
 			body: true,
-			close: true
+			close: true,
+			dialogClass: "",
+			focus: ""
 		};
 		dialog = null;
 		options = null;
@@ -400,6 +402,7 @@
 					this.onHidden(this.result, null)
 				}
 			}
+			this.dispose()
 		}
 		dispose() {
 			if (this.modal !== null) {
@@ -428,7 +431,11 @@
 				this.onHidden = onHidden
 			}
 			this.modal.show();
-			return promiseForEvent(this.dialog, "shown.bs.modal")
+			return promiseForEvent(this.dialog, "shown.bs.modal").then(() => {
+				if (this.options.focus !== "") {
+					this.dialog.querySelector(this.options.focus)?.focus()
+				}
+			})
 		}
 		hide() {
 			this.modal.hide();
@@ -449,6 +456,7 @@
 			let closeButton = null;
 			if (parseBoolean(options.close)) {
 				closeButton = createTag("button.close.btn-close", {
+					tabindex: "-1",
 					type: "button",
 					"aria-label": "Close"
 				});
@@ -475,7 +483,8 @@
 						buttonClass = "." + buttonClass
 					}
 					let buttonObject = createTag("button.btn" + buttonClass + ".button" + i, {
-						type: "button"
+						type: "button",
+						tabindex: i + 1
 					}, button.text);
 					buttonObject.addEventListener("click", function () {
 						this._handleButton(i, button, buttonObject);
@@ -512,7 +521,11 @@
 					appendToElement(body, appendToElement(createTag(".buttons" + buttonPanelClasses), ...buttons))
 				}
 			}
-			let dialog = appendToElement(createTag(".modal.fade", {
+			let dialogClasses = options.dialogClass.split(" ").map(e => e.trim()).filter(e => e !== "").join(".");
+			if (dialogClasses !== "") {
+				dialogClasses = "." + dialogClasses
+			}
+			let dialog = appendToElement(createTag(dialogClasses + ".modal.fade", {
 				tabindex: "-1",
 				role: "dialog",
 				"aria-hidden": "true",
@@ -767,7 +780,9 @@
 			customContent: null,
 			title: null,
 			buttonAccept: "Accept",
-			escapeKey: true
+			escapeKey: true,
+			dialogClass: "",
+			focus: ""
 		};
 		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
@@ -799,7 +814,9 @@
 						customContent: settings.customContent,
 						buttons: [settings.buttonAccept],
 						escapeKeyCancels: settings.escapeKey,
-						close: settings.buttonClose
+						close: settings.buttonClose,
+						dialogClass: settings.dialogClass,
+						focus: settings.focus
 					}, null, function (result) {
 						onNextAction(true)
 					});
@@ -826,7 +843,9 @@
 			titleVerified: null,
 			buttonAccept: "Accept",
 			buttonClose: false,
-			escapeKey: true
+			escapeKey: true,
+			dialogClass: "",
+			focus: ""
 		};
 		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
@@ -860,7 +879,9 @@
 						customContent: settings.customContentVerified,
 						buttons: [settings.buttonAccept],
 						escapeKeyCancels: settings.escapeKey,
-						close: settings.buttonClose
+						close: settings.buttonClose,
+						dialogClass: settings.dialogClass,
+						focus: settings.focus
 					}, null, function (result) {
 						if (onVerificationSuccess !== null) {
 							onVerificationSuccess()
@@ -875,7 +896,9 @@
 						customContent: settings.customContentNotVerified,
 						buttons: [settings.buttonAccept],
 						escapeKeyCancels: settings.escapeKey,
-						close: settings.buttonClose
+						close: settings.buttonClose,
+						dialogClass: settings.dialogClass,
+						focus: settings.focus
 					}, null, function (result) {
 						if (onVerificationFailure !== null) {
 							onVerificationFailure()
@@ -908,7 +931,10 @@
 			buttonConfirm: "Confirm",
 			buttonCancel: "Cancel",
 			buttonClose: true,
-			escapeKey: true
+			onConfirm: null,
+			escapeKey: true,
+			dialogClass: "",
+			focus: ""
 		};
 		static extractOptions(el, prefix = null, map = null) {
 			let options = super.extractOptions(el, prefix, map);
@@ -925,9 +951,21 @@
 				customContent: settings.customContent,
 				buttons: [settings.buttonConfirm, settings.buttonCancel],
 				escapeKeyCancels: settings.escapeKey,
-				close: settings.buttonClose
+				close: settings.buttonClose,
+				dialogClass: settings.dialogClass,
+				focus: settings.focus
 			}, null, function (result) {
 				if (result === 0) {
+					if (settings.onConfirm !== null) {
+						let result = null;
+						if (typeof settings.onConfirm === "function") {
+							result = settings.onConfirm.bind(document)()
+						} else if (typeof settings.onConfirm === "string") {
+							result = function () {
+								return eval(settings.onConfirm)
+							}.bind(document)()
+						}
+					}
 					if (onNextAction !== null) {
 						onNextAction()
 					}
@@ -951,7 +989,9 @@
 			buttonCancel: "Cancel",
 			cancel: null,
 			header: true,
-			footer: true
+			footer: true,
+			dialogClass: "",
+			focus: ""
 		};
 		static extractOptions(el, prefix = null, map = null) {
 			return super.extractOptions(el, prefix, {
@@ -997,7 +1037,9 @@
 				escapeKeyCancels: false,
 				close: false,
 				header: options.header !== undefined ? settings.header : settings.title !== null && settings.title != "",
-				footer: options.footer !== undefined ? settings.footer : cancelHandler !== null
+				footer: options.footer !== undefined ? settings.footer : cancelHandler !== null,
+				dialogClass: settings.dialogClass,
+				focus: settings.focus
 			}, function () {
 				cancelHandler();
 				onCancelActions()
@@ -1024,7 +1066,9 @@
 			escapeKey: true,
 			buttonClose: true,
 			header: true,
-			footer: true
+			footer: true,
+			dialogClass: "",
+			focus: ""
 		};
 		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
@@ -1036,7 +1080,9 @@
 				escapeKeyCancels: settings.escapeKey,
 				close: settings.buttonClose,
 				header: options.header !== undefined ? settings.header : settings.title !== null && settings.title != "",
-				footer: options.footer !== undefined ? settings.footer : settings.buttonAccept !== null && settings.buttonAccept != ""
+				footer: options.footer !== undefined ? settings.footer : settings.buttonAccept !== null && settings.buttonAccept != "",
+				dialogClass: settings.dialogClass,
+				focus: settings.focus
 			}, null, function (result) {
 				if (onNextAction !== null) {
 					onNextAction()
