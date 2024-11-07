@@ -14,8 +14,14 @@ class ActionConfirm extends Action {
         buttonCancel: "Cancel",
         // If falshi (i.e. null, 0, false, "false"), the button to close the dialog will not be shown
         buttonClose: true,
+        // The function to call when the action is confirmed (prior to the next action)
+        onConfirm: null,
         // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
-        escapeKey: true        
+        escapeKey: true,
+        // The class to apply to the dialog
+        dialogClass: "",
+        // The selector to focus when the dialog is shown
+        focus: "",
     };
 
     static extractOptions(el, prefix = null, map = null) {
@@ -38,9 +44,22 @@ class ActionConfirm extends Action {
             buttons: [ settings.buttonConfirm, settings.buttonCancel ],
             escapeKeyCancels: settings.escapeKey,
             close: settings.buttonClose,
+            dialogClass: settings.dialogClass,
+            focus: settings.focus,
         }, null, function(result) {
             if (result === 0) {
                 // The user has confirmed the action
+                if (settings.onConfirm !== null) {
+                    // Execute the onConfirm function, if any, either as a function or as a string (if it's a string, we'll eval it)
+                    let result = null;
+                    if (typeof(settings.onConfirm) === 'function') {
+                        result = settings.onConfirm.bind(document)();
+                    } else if (typeof(settings.onConfirm) === 'string') {
+                        result = function() {
+                            return eval(settings.onConfirm)
+                        }.bind(document)();
+                    }
+                }
                 if (onNextAction !== null) {
                     onNextAction();
                 }

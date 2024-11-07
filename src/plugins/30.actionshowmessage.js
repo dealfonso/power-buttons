@@ -16,7 +16,11 @@ class ActionShowMessage extends Action {
         // If falshi (i.e. null, 0, false, "false"), the head of the dialog will be hidden
         header: true,
         // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
-        footer: true
+        footer: true,
+        // The class to apply to the dialog
+        dialogClass: "",
+        // The selector to focus when the dialog is shown
+        focus: "",
     }
 
     static execute(el, options, onNextAction, onCancelActions) {
@@ -33,6 +37,8 @@ class ActionShowMessage extends Action {
             close: settings.buttonClose,
             header: (options.header !== undefined)?settings.header : (settings.title!==null&&settings.title!= ""),
             footer: (options.footer !== undefined)?settings.footer : (settings.buttonAccept!==null&&settings.buttonAccept!= ""),
+            dialogClass: settings.dialogClass,
+            focus: settings.focus,
         }, null, function(result) {
             if (onNextAction !== null) {
                 onNextAction();

@@ -26,7 +26,8 @@ LIBRARY_NAME := $(if $(LIBRARY_NAME),$(LIBRARY_NAME),$(current_dir))
 # Folder in which the build files will be located
 DIST_FOLDER := $(if $(DIST_FOLDER),$(DIST_FOLDER),dist)
 # The name of the build files
-FILENAME = $(DIST_FOLDER)/$(LIBRARY_NAME)
+FILEPATH = $(DIST_FOLDER)/$(LIBRARY_NAME)
+FILENAME := $(notdir $(FILEPATH))
 
 # Files of the dependencies to include in the build
 DEP_FILES = $(foreach fd, $(DEPENDS), $(DEPENDS_FOLDER)/$(fd)/dist/$(fd).module.js)
@@ -34,13 +35,13 @@ DEP_FILES = $(foreach fd, $(DEPENDS), $(DEPENDS_FOLDER)/$(fd)/dist/$(fd).module.
 # The version of this library (this is intended to track the version of this template)
 MAKEFILE_VERSION = 1.1.0
 
-RESULT_FILES = $(FILENAME).full.js $(FILENAME).min.js $(FILENAME).js $(FILENAME).compress.js $(FILENAME).module.js
+RESULT_FILES = $(FILEPATH).full.js $(FILEPATH).min.js $(FILEPATH).js $(FILEPATH).compress.js $(FILEPATH).module.js
 
-INPUT_FILES = $(FILENAME).raw.js $(DEP_FILES)
+INPUT_FILES = $(FILEPATH).raw.js $(DEP_FILES)
 
 all: $(RESULT_FILES)
 
-module: $(FILENAME).module.js
+module: $(FILEPATH).module.js
 
 clean:
 	rm -f $(RESULT_FILES)
@@ -51,36 +52,43 @@ cleanall: clean
 
 depends: $(DEP_FILES)
 
-$(FILENAME).full.js: $(FILENAME).raw.js $(DEP_FILES)
+$(FILEPATH).full.js: $(FILEPATH).raw.js
 	@mkdir -p $(DIST_FOLDER)
-	cat $(DEP_FILES) $(FILENAME).raw.js | uglifyjs -e exports:window | js-beautify -t -s 1 -m 1 -j -n | cat notice - > $(FILENAME).full.js
+	cat $(FILEPATH).raw.js | uglifyjs -e exports:window | js-beautify -t -s 1 -m 1 -j -n | cat notice - > $(FILEPATH).full.js
 
-$(FILENAME).js:	$(FILENAME).raw.js $(DEP_FILES)
+$(FILEPATH).js:	$(FILEPATH).raw.js
 	@mkdir -p $(DIST_FOLDER)
-	cat $(DEP_FILES) $(FILENAME).raw.js | uglifyjs -e exports:window -b | js-beautify -t -s 1 -m 1 -j -n | cat notice - > $(FILENAME).js
+	cat $(FILEPATH).raw.js | uglifyjs -e exports:window -b | js-beautify -t -s 1 -m 1 -j -n | cat notice - > $(FILEPATH).js
 
-$(FILENAME).min.js: $(FILENAME).raw.js $(DEP_FILES)
+$(FILEPATH).min.js: $(FILEPATH).js
 	@mkdir -p $(DIST_FOLDER)
-	cat $(DEP_FILES) $(FILENAME).raw.js | uglifyjs -e exports:window --toplevel --module -m | cat notice.min - > $(FILENAME).min.js
+	cd $(DIST_FOLDER) && uglifyjs $(FILENAME).js --toplevel --module -m --source-map "filename='$(FILENAME).min.js.map',includeSources=true" -o $(FILENAME).min.js
 
-$(FILENAME).compress.js: $(FILENAME).raw.js $(DEP_FILES)
+$(FILEPATH).compress.js: $(FILEPATH).js
 	@mkdir -p $(DIST_FOLDER)
-	cat $(DEP_FILES) $(FILENAME).raw.js | uglifyjs -e exports:window --compress passes=3,dead_code=true,toplevel=true --toplevel --module -m -- | cat notice.min - > $(FILENAME).compress.js
+	cd $(DIST_FOLDER) && uglifyjs $(FILENAME).js --compress passes=3,dead_code=true,toplevel=true --toplevel --module -m --source-map "filename='$(FILENAME).compress.js.map',includeSources=true" -o $(FILENAME).compress.js
 
-$(FILENAME).module.js: $(FILENAME).raw.js $(DEP_FILES)
+$(FILEPATH).module.js: $(FILEPATH).raw.js
 	@mkdir -p $(DIST_FOLDER)
-	( cat notice; echo 'if (typeof imports === "undefined") { var imports = {}; }' ; cat $(DEP_FILES) $(FILENAME).raw.js | uglifyjs -e exports:imports | js-beautify -t -s 1 -m 1 -j -n ) > $(FILENAME).module.js
+	( cat notice; echo 'if (typeof imports === "undefined") { var imports = {}; }' ; cat $(FILEPATH).raw.js | uglifyjs -e exports:imports | js-beautify -t -s 1 -m 1 -j -n ) > $(FILEPATH).module.js
 
 %.module.js:
 	$(MAKE) -C $(dir $(@D)) module
 
-%.raw.js: $(FILES) $(PRE) $(POST)
+%.raw.js: $(FILES) $(PRE) $(POST) $(DEP_FILES)
 	@mkdir -p $(DIST_FOLDER)
-	cat $(PRE) $(FILES) $(POST) > $(FILENAME).raw.js
+	cat $(DEP_FILES) $(PRE) $(FILES) $(POST) > $(FILEPATH).raw.js
 
 ################################################################################
 # CHANGELOG
 ################################################################################
+#
+# 1.2.0
+#	* Add different variables for FILENAME and FILEPATH to avoid problems with the path
+#	* Change the creation of the raw file to use the dependencies as a prerequisite and create a true raw file
+#	* Add the creation of map source files for the minified and compressed versions
+#
+# ----------------------------------------------------------------
 #
 # 1.1.0
 #	* Reorder the parameters of the Makefile.

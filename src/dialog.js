@@ -40,6 +40,10 @@ class Dialog {
         // If true, the dialog will have a close button (i.e. cross) in the top right corner. Clicking this button will call the
         //   onButton function with the index -1
         close: true,
+        // Classes to add to the dialog
+        dialogClass: "",
+        // A selector in which to call the focus function when the dialog is shown (i.e. the element that will receive the focus)
+        focus: ""
     };
 
     // The HTML element of the dialog
@@ -108,6 +112,7 @@ class Dialog {
                 this.onHidden(this.result, null);
             }
         }
+        this.dispose();
     }
 
     /**
@@ -146,7 +151,11 @@ class Dialog {
             this.onHidden = onHidden;
         }
         this.modal.show();
-        return promiseForEvent(this.dialog, "shown.bs.modal")
+        return promiseForEvent(this.dialog, "shown.bs.modal").then(() => {
+            if (this.options.focus !== "") {
+                this.dialog.querySelector(this.options.focus)?.focus();
+            }
+        });
     }
 
     /**
@@ -187,7 +196,7 @@ class Dialog {
 
         let closeButton = null;
         if (parseBoolean(options.close)) {
-            closeButton = createTag("button.close.btn-close", { type: "button", "aria-label": "Close" });
+            closeButton = createTag("button.close.btn-close", { tabindex: "-1", type: "button", "aria-label": "Close" });
             closeButton.addEventListener("click", () => this._handleButton(-1, null, closeButton));
         }
 
@@ -221,7 +230,7 @@ class Dialog {
                 }
 
                 // We'll create the button object
-                let buttonObject = createTag("button.btn" + buttonClass + ".button" + i, { type: "button" }, button.text);
+                let buttonObject = createTag("button.btn" + buttonClass + ".button" + i, { type: "button", tabindex: i+1 }, button.text);
 
                 // Let's add the handler for the button. We do not need to store it because we are not removing it
                 buttonObject.addEventListener("click", function() {
@@ -263,8 +272,13 @@ class Dialog {
             }
         }
 
+        let dialogClasses = options.dialogClass.split(" ").map((e) => e.trim()).filter((e) => e !== "").join(".");
+        if (dialogClasses !== "") {
+            dialogClasses = "." + dialogClasses;
+        }
+
         let dialog = appendToElement(
-            createTag(".modal.fade", { tabindex : "-1", role : "dialog", "aria-hidden" : "true", "data-keyboard": "false"  }),
+            createTag(dialogClasses + ".modal.fade", { tabindex : "-1", role : "dialog", "aria-hidden" : "true", "data-keyboard": "false"  }),
                 appendToElement(createTag(".modal-dialog.modal-dialog-centered", { role : "document" }),
                     appendToElement(createTag(".modal-content"),
                         header,
