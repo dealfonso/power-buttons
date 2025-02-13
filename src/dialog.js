@@ -98,6 +98,7 @@ class Dialog {
         this.onButton = onButton;
         this.onHidden = onHidden;
         this._hiddenHandler = this._hiddenHandler.bind(this);
+        this._hideHandler = this._hideHandler.bind(this);
     }
 
     /**
@@ -113,6 +114,18 @@ class Dialog {
             }
         }
         this.dispose();
+    }
+
+    /**
+     * This function is called when the dialog is to be hidden
+     */
+    _hideHandler() {
+        this.dialog.removeEventListener("hide.bs.modal", this._hideHandler);
+
+        // Fixes a weird message in the console for bootstrap retaining the focus of the element when the dialog is hidden
+        if (document.activeElement) {
+            document.activeElement.blur();            
+        }
     }
 
     /**
@@ -143,6 +156,7 @@ class Dialog {
             this.modal = new bootstrap.Modal(this.dialog, { backdrop: this.options.escapeKeyCancels?true:"static", keyboard: this.options.escapeKeyCancels });
         }
         this.dialog.addEventListener("hidden.bs.modal", this._hiddenHandler);
+        this.dialog.addEventListener("hide.bs.modal", this._hideHandler);
         this.result = null;
         if (onButton !== null) {
             this.onButton = onButton;
@@ -278,7 +292,7 @@ class Dialog {
         }
 
         let dialog = appendToElement(
-            createTag(dialogClasses + ".modal.fade", { tabindex : "-1", role : "dialog", "aria-hidden" : "true", "data-keyboard": "false"  }),
+            createTag(dialogClasses + ".modal.draggable.fade", { tabindex : "-1", role : "dialog", "aria-hidden" : "true", "data-keyboard": "false"  }),
                 appendToElement(createTag(".modal-dialog.modal-dialog-centered", { role : "document" }),
                     appendToElement(createTag(".modal-content"),
                         header,

@@ -101,7 +101,7 @@ if (typeof imports === "undefined") { var imports = {}; }
 			PowerButtons.discover(els, options)
 		}
 	};
-	exports.powerButtons.version = "2.2.0";
+	exports.powerButtons.version = "2.2.1";
 	exports.powerButtons.plugins = function () {
 		return Object.keys(PowerButtons.actionsRegistered)
 	};
@@ -389,7 +389,8 @@ if (typeof imports === "undefined") { var imports = {}; }
 			this.result = null;
 			this.onButton = onButton;
 			this.onHidden = onHidden;
-			this._hiddenHandler = this._hiddenHandler.bind(this)
+			this._hiddenHandler = this._hiddenHandler.bind(this);
+			this._hideHandler = this._hideHandler.bind(this)
 		}
 		_hiddenHandler() {
 			this.dialog.removeEventListener("hidden.bs.modal", this._hiddenHandler);
@@ -404,6 +405,12 @@ if (typeof imports === "undefined") { var imports = {}; }
 				}
 			}
 			this.dispose()
+		}
+		_hideHandler() {
+			this.dialog.removeEventListener("hide.bs.modal", this._hideHandler);
+			if (document.activeElement) {
+				document.activeElement.blur()
+			}
 		}
 		dispose() {
 			if (this.modal !== null) {
@@ -424,6 +431,7 @@ if (typeof imports === "undefined") { var imports = {}; }
 				})
 			}
 			this.dialog.addEventListener("hidden.bs.modal", this._hiddenHandler);
+			this.dialog.addEventListener("hide.bs.modal", this._hideHandler);
 			this.result = null;
 			if (onButton !== null) {
 				this.onButton = onButton
@@ -526,7 +534,7 @@ if (typeof imports === "undefined") { var imports = {}; }
 			if (dialogClasses !== "") {
 				dialogClasses = "." + dialogClasses
 			}
-			let dialog = appendToElement(createTag(dialogClasses + ".modal.fade", {
+			let dialog = appendToElement(createTag(dialogClasses + ".modal.draggable.fade", {
 				tabindex: "-1",
 				role: "dialog",
 				"aria-hidden": "true",
