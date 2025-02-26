@@ -25,9 +25,11 @@ class ActionVerify extends Action {
         // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
         escapeKey: true,
         // The class to apply to the dialog
-        dialogClass: "",
+        dialogClass: "fade",
         // The selector to focus when the dialog is shown
         focus: "",
+        // Function called when the html element of the dialog is created
+        onDialogCreated: (htmlElement) => {},
     }
 
     static execute(el, options, onNextAction, onCancelActions) {
@@ -68,7 +70,8 @@ class ActionVerify extends Action {
                     escapeKeyCancels: settings.escapeKey,
                     close: settings.buttonClose,
                     dialogClass: settings.dialogClass,
-                    focus: settings.focus,        
+                    focus: settings.focus,
+                    onDialogCreated: settings.onDialogCreated
                 }, null, function(result) {
                     if (onVerificationSuccess !== null) {
                         onVerificationSuccess();
@@ -85,7 +88,8 @@ class ActionVerify extends Action {
                     escapeKeyCancels: settings.escapeKey,
                     close: settings.buttonClose,
                     dialogClass: settings.dialogClass,
-                    focus: settings.focus,        
+                    focus: settings.focus,
+                    onDialogCreated: settings.onDialogCreated
                 }, null, function(result) {
                     if (onVerificationFailure !== null) {
                         onVerificationFailure();

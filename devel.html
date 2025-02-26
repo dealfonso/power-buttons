@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -67,12 +67,12 @@
     <div class="example">
       <h3>Basic example for the confirm button</h3>
       <p class="small">hint: The "confirm" attribute is set to the message to show; if the user hits "accept", the action of the button will continue (i.e. show an alert).</p>
-      <button type="button" class="btn btn-primary" data-confirm="please confirm this action" onclick="alert('confirmed')">confirm</button>
+      <button type="button" class="btn btn-primary" data-confirm="please confirm this action" data-confirm-on-confirm="alert('on confirmed')" data-confirm-focus=".button1" onclick="alert('confirmed')">confirm</button>
     </div>
     <div class="example">
       <h3>Basic example for the showmessage button</h3>
       <p class="small">hint: The "showmessage" attribute is set to the message to show; once closed the message, the action will continue (i.e. show an alert)</p>
-      <button type="button" data-showmessage="hello world" onclick="alert('now the button continues')" class="btn btn-primary">showmessage test</button>
+      <button type="button" data-showmessage-on-dialog-created="alert('created')" data-showmessage="hello world" onclick="alert('now the button continues')" class="btn btn-primary">showmessage test</button>
     </div>
     <div class="example">
       <h3>Basic example for the verify button</h3>
@@ -126,11 +126,17 @@
     <h2>Programmatical usage</h2>    
     <div class="example">
       <h3>Programmatical</h3>
-      <p class="small">The button is a common button, that is being converted into a confirm button programmatically</p>
+      <p class="small">The button is a common button, that is being converted into a confirm button programmatically and adds a callback to the dialog as it is created</p>
       <button type="button" class="btn btn-primary" id="testbutton">programmatical button</button>
       <script>
         var testbutton = document.getElementById("testbutton");
-        powerButtons('confirm', testbutton);
+        powerButtons('confirm', testbutton, { 
+          onDialogCreated: function (dlg) { 
+            dlg.addEventListener('show.bs.modal', function () {
+              dlg.style.paddingRight = '100px';
+            });
+          }
+        });
       </script>
     </div>
     <div class="example">
@@ -267,4 +273,4 @@
       });
     }
   </script>
-  </html>
+</html>

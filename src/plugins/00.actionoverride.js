@@ -17,9 +17,11 @@ class ActionOverride extends Action {
         // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
         escapeKey: true,
         // The class to apply to the dialog
-        dialogClass: "",
+        dialogClass: "fade",
         // The selector to focus when the dialog is shown
         focus: "",
+        // Function called when the html element of the dialog is created
+        onDialogCreated: (htmlElement) => {},
     }
 
     static execute(el, options, onNextAction, onCancelActions) {
@@ -57,7 +59,8 @@ class ActionOverride extends Action {
                     escapeKeyCancels: settings.escapeKey,
                     close: settings.buttonClose,
                     dialogClass: settings.dialogClass,
-                    focus: settings.focus,        
+                    focus: settings.focus,
+                    onDialogCreated: settings.onDialogCreated
                 }, null, function(result) {
                     // Let's override the next actions, to get to the final action
                     onNextAction(true);

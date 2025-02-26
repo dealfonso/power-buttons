@@ -19,9 +19,11 @@ class ActionConfirm extends Action {
         // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
         escapeKey: true,
         // The class to apply to the dialog
-        dialogClass: "",
+        dialogClass: "fade",
         // The selector to focus when the dialog is shown
         focus: "",
+        // Function called when the html element of the dialog is created
+        onDialogCreated: (htmlElement) => {},
     };
 
     static extractOptions(el, prefix = null, map = null) {
@@ -46,6 +48,7 @@ class ActionConfirm extends Action {
             close: settings.buttonClose,
             dialogClass: settings.dialogClass,
             focus: settings.focus,
+            onDialogCreated: settings.onDialogCreated
         }, null, function(result) {
             if (result === 0) {
                 // The user has confirmed the action

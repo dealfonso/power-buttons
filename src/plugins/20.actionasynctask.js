@@ -19,9 +19,11 @@ class ActionAsyncTask extends Action {
         // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
         footer: true,
         // The class to apply to the dialog
-        dialogClass: "",
+        dialogClass: "fade",
         // The selector to focus when the dialog is shown
         focus: "",
+        // Function called when the html element of the dialog is created
+        onDialogCreated: (htmlElement) => {},
     }
 
     // Overwrite to rename the data attribute
@@ -79,6 +81,7 @@ class ActionAsyncTask extends Action {
             footer: (options.footer !== undefined)?settings.footer : (cancelHandler!==null),
             dialogClass: settings.dialogClass,
             focus: settings.focus,
+            onDialogCreated: settings.onDialogCreated
         }, function() {
                 cancelHandler();
                 onCancelActions();

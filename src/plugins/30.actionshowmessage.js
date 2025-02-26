@@ -18,9 +18,11 @@ class ActionShowMessage extends Action {
         // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
         footer: true,
         // The class to apply to the dialog
-        dialogClass: "",
+        dialogClass: "fade",
         // The selector to focus when the dialog is shown
         focus: "",
+        // Function called when the html element of the dialog is created
+        onDialogCreated: (htmlElement) => {},
     }
 
     static execute(el, options, onNextAction, onCancelActions) {
@@ -39,6 +41,7 @@ class ActionShowMessage extends Action {
             footer: (options.footer !== undefined)?settings.footer : (settings.buttonAccept!==null&&settings.buttonAccept!= ""),
             dialogClass: settings.dialogClass,
             focus: settings.focus,
+            onDialogCreated: settings.onDialogCreated
         }, null, function(result) {
             if (onNextAction !== null) {
                 onNextAction();

@@ -110,6 +110,7 @@ The default values for the options are the next:
     data-confirm-on-confirm=""
     data-confirm-dialog-class=""
     data-confirm-focus=""
+    data-confirm-on-dialog-created=""
     >clickme</button>
 ```
 
@@ -143,7 +144,8 @@ The default values for the options of the _verify_ button are the next:
     data-verify-header="true"
     data-verify-footer="true"
     data-verify-dialog-class=""
-    data-verify-focus="">test verify</button>
+    data-verify-focus=""
+    data-verify-on-dialog-created="">test verify</button>
 ```
 
 ### ShowMessage Button
@@ -171,7 +173,8 @@ The default values for the options of the _showmessage_ button are the next:
     data-showmessage-header="true"
     data-showmessage-footer="true"
     data-showmessage-dialog-class=""
-    data-showmessage-focus="">test showmessage</button>
+    data-showmessage-focus=""
+    data-showmessage-on-dialog-created="">test showmessage</button>
 ```
 
 ### Override Actions
@@ -267,7 +270,8 @@ The default values for the options of the _asynctask_ button are the next:
     data-asynctask-header="true"
     data-asynctask-footer="true"
     data-asynctask-dialog-class=""
-    data-asynctask-focus="">async task</button>
+    data-asynctask-focus=""
+    data-asynctask-on-dialog-created="">async task</button>
 ```
 
 #### A note on the tasks to execute
@@ -413,9 +417,11 @@ header: true,
 // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
 footer: true,
 // The class to apply to the dialog
-dialogClass: "",
+dialogClass: "fade",
 // The selector to focus when the dialog is shown
-focus: ""
+focus: "",
+// The function to call when the html for the dialog is created
+onDialogCreated: (dialog) => {}
 ```
 
 The equivalent for html5 attributes are the snake-case version of each of them, with the prefix `data-verify-`; e.g. `data-verify-button-accept`, `data-verify-title-not-verified`, etc.
@@ -440,9 +446,11 @@ buttonClose: true,
 // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
 escapeKey: true,
 // The class to apply to the dialog
-dialogClass: "",
+dialogClass: "fade",
 // The selector to focus when the dialog is shown
 focus: ""
+// The function to call when the html for the dialog is created
+onDialogCreated: (dialog) => {}
 ```
 
 The equivalent for html5 attributes are the snake-case version of each of them, with the prefix `data-confirm-`; e.g. `data-confirm-button-confirm`, `data-confirm-title`, etc.
@@ -467,9 +475,11 @@ header: true,
 // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
 footer: true,
 // The class to apply to the dialog
-dialogClass: "",
+dialogClass: "fade",
 // The selector to focus when the dialog is shown
 focus: ""
+// The function to call when the html for the dialog is created
+onDialogCreated: (dialog) => {}
 ```
 
 The equivalent for html5 attributes are the snake-case version of each of them, with the prefix `data-showmessage-`; e.g. `data-showmessage-button-accept`, `data-showmessage-title`, etc.
@@ -492,9 +502,11 @@ buttonAccept: "Accept",
 // If falshi (i.e. null, 0, false, "false"), the esc key will not close the dialog (it will close it if true)
 escapeKey: true,
 // The class to apply to the dialog
-dialogClass: "",
+dialogClass: "fade",
 // The selector to focus when the dialog is shown
 focus: ""
+// The function to call when the html for the dialog is created
+onDialogCreated: (dialog) => {}
 ```
 
 The equivalent for html5 attributes are the snake-case version of each of them, with the prefix `data-override-`; e.g. `data-override-button-accept`, `data-override-title`, etc.
@@ -553,9 +565,11 @@ header: true,
 // If falshi (i.e. null, 0, false, "false"), the footer of the dialog will be hidden
 footer: true,
 // The class to apply to the dialog
-dialogClass: "",
+dialogClass: "fade",
 // The selector to focus when the dialog is shown
 focus: ""
+// The function to call when the html for the dialog is created
+onDialogCreated: (dialog) => {}
 ```
 
 The `task` and `cancel` parameters may be either functions, promises or strings containing javascript code. If they are functions, they will be executed. If they are promises, they will be awaited for their finalization. If they are strings, they will be evaluated as javascript code.

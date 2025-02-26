@@ -164,6 +164,9 @@ function getValueWithJavascriptSupport(value, context = null) {
  * @returns a promise that will be resolved when the event is triggered
  */
 function promiseForEvent(el, event) {
+    if (el === null || el === undefined) {
+        return Promise.resolve();
+    }
     let resolveFunction = null;
     let promise = new Promise((resolve) => {
         resolveFunction = resolve;

@@ -100,7 +100,7 @@
 			PowerButtons.discover(els, options);
 		}
 	};
-	exports.powerButtons.version = "2.2.1";
+	exports.powerButtons.version = "2.2.2";
 	exports.powerButtons.plugins = function () {
 		return Object.keys(PowerButtons.actionsRegistered);
 	};
@@ -248,6 +248,9 @@
 	}
 
 	function promiseForEvent(el, event) {
+		if (el === null || el === undefined) {
+			return Promise.resolve();
+		}
 		let resolveFunction = null;
 		let promise = new Promise(resolve => {
 			resolveFunction = resolve;
@@ -347,13 +350,13 @@
 			footer: true,
 			body: true,
 			close: true,
-			dialogClass: "",
-			focus: ""
+			dialogClass: "fade",
+			focus: "",
+			onDialogCreated: htmlElement => {}
 		};
 		dialog = null;
 		options = null;
 		modal = null;
-		onButton = null;
 		result = null;
 		onHidden = null;
 		onButton = null;
@@ -422,6 +425,14 @@
 		show(onButton = null, onHidden = null) {
 			if (this.dialog === null) {
 				this.dialog = this._build_dialog(this.options);
+				document.body.append(this.dialog);
+				if (this.options.onDialogCreated !== null) {
+					if (typeof this.options.onDialogCreated === "function") {
+						this.options.onDialogCreated(this.dialog);
+					} else if (typeof this.options.onDialogCreated === "string") {
+						eval(this.options.onDialogCreated);
+					}
+				}
 			}
 			if (this.modal === null) {
 				this.modal = new bootstrap.Modal(this.dialog, {
@@ -533,7 +544,7 @@
 			if (dialogClasses !== "") {
 				dialogClasses = "." + dialogClasses;
 			}
-			let dialog = appendToElement(createTag(dialogClasses + ".modal.draggable.fade", {
+			let dialog = appendToElement(createTag(dialogClasses + ".modal.draggable", {
 				tabindex: "-1",
 				role: "dialog",
 				"aria-hidden": "true",
@@ -789,8 +800,9 @@
 			title: null,
 			buttonAccept: "Accept",
 			escapeKey: true,
-			dialogClass: "",
-			focus: ""
+			dialogClass: "fade",
+			focus: "",
+			onDialogCreated: htmlElement => {}
 		};
 		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
@@ -824,7 +836,8 @@
 						escapeKeyCancels: settings.escapeKey,
 						close: settings.buttonClose,
 						dialogClass: settings.dialogClass,
-						focus: settings.focus
+						focus: settings.focus,
+						onDialogCreated: settings.onDialogCreated
 					}, null, function (result) {
 						onNextAction(true);
 					});
@@ -852,8 +865,9 @@
 			buttonAccept: "Accept",
 			buttonClose: false,
 			escapeKey: true,
-			dialogClass: "",
-			focus: ""
+			dialogClass: "fade",
+			focus: "",
+			onDialogCreated: htmlElement => {}
 		};
 		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
@@ -889,7 +903,8 @@
 						escapeKeyCancels: settings.escapeKey,
 						close: settings.buttonClose,
 						dialogClass: settings.dialogClass,
-						focus: settings.focus
+						focus: settings.focus,
+						onDialogCreated: settings.onDialogCreated
 					}, null, function (result) {
 						if (onVerificationSuccess !== null) {
 							onVerificationSuccess();
@@ -906,7 +921,8 @@
 						escapeKeyCancels: settings.escapeKey,
 						close: settings.buttonClose,
 						dialogClass: settings.dialogClass,
-						focus: settings.focus
+						focus: settings.focus,
+						onDialogCreated: settings.onDialogCreated
 					}, null, function (result) {
 						if (onVerificationFailure !== null) {
 							onVerificationFailure();
@@ -941,8 +957,9 @@
 			buttonClose: true,
 			onConfirm: null,
 			escapeKey: true,
-			dialogClass: "",
-			focus: ""
+			dialogClass: "fade",
+			focus: "",
+			onDialogCreated: htmlElement => {}
 		};
 		static extractOptions(el, prefix = null, map = null) {
 			let options = super.extractOptions(el, prefix, map);
@@ -961,7 +978,8 @@
 				escapeKeyCancels: settings.escapeKey,
 				close: settings.buttonClose,
 				dialogClass: settings.dialogClass,
-				focus: settings.focus
+				focus: settings.focus,
+				onDialogCreated: settings.onDialogCreated
 			}, null, function (result) {
 				if (result === 0) {
 					if (settings.onConfirm !== null) {
@@ -998,8 +1016,9 @@
 			cancel: null,
 			header: true,
 			footer: true,
-			dialogClass: "",
-			focus: ""
+			dialogClass: "fade",
+			focus: "",
+			onDialogCreated: htmlElement => {}
 		};
 		static extractOptions(el, prefix = null, map = null) {
 			return super.extractOptions(el, prefix, {
@@ -1047,7 +1066,8 @@
 				header: options.header !== undefined ? settings.header : settings.title !== null && settings.title != "",
 				footer: options.footer !== undefined ? settings.footer : cancelHandler !== null,
 				dialogClass: settings.dialogClass,
-				focus: settings.focus
+				focus: settings.focus,
+				onDialogCreated: settings.onDialogCreated
 			}, function () {
 				cancelHandler();
 				onCancelActions();
@@ -1075,8 +1095,9 @@
 			buttonClose: true,
 			header: true,
 			footer: true,
-			dialogClass: "",
-			focus: ""
+			dialogClass: "fade",
+			focus: "",
+			onDialogCreated: htmlElement => {}
 		};
 		static execute(el, options, onNextAction, onCancelActions) {
 			let settings = PowerButtons.getActionSettings(this, options);
@@ -1090,7 +1111,8 @@
 				header: options.header !== undefined ? settings.header : settings.title !== null && settings.title != "",
 				footer: options.footer !== undefined ? settings.footer : settings.buttonAccept !== null && settings.buttonAccept != "",
 				dialogClass: settings.dialogClass,
-				focus: settings.focus
+				focus: settings.focus,
+				onDialogCreated: settings.onDialogCreated
 			}, null, function (result) {
 				if (onNextAction !== null) {
 					onNextAction();
