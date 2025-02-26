@@ -41,9 +41,11 @@ class Dialog {
         //   onButton function with the index -1
         close: true,
         // Classes to add to the dialog
-        dialogClass: "",
+        dialogClass: "fade",
         // A selector in which to call the focus function when the dialog is shown (i.e. the element that will receive the focus)
-        focus: ""
+        focus: "",
+        // Function called when the html element of the dialog is created
+        onDialogCreated: (htmlElement) => {},
     };
 
     // The HTML element of the dialog
@@ -52,8 +54,6 @@ class Dialog {
     options = null;
     // The bootstrap modal resource
     modal = null;
-    // The function to call when a button has been clicked
-    onButton = null;
     // The button that was clicked (null means that the dialog was closed without clicking any button, -1 means that the close button 
     //  was clicked)
     result = null;
@@ -149,8 +149,16 @@ class Dialog {
      */
     show(onButton = null, onHidden = null) {
         if (this.dialog === null) {
-            // This should never happen, but just in case the user disposed the dialog and tries to show it again
             this.dialog = this._build_dialog(this.options);
+
+            document.body.append(this.dialog);
+            if (this.options.onDialogCreated !== null) {
+                if (typeof(this.options.onDialogCreated) === "function") {
+                    this.options.onDialogCreated(this.dialog);
+                } else if (typeof(this.options.onDialogCreated) === "string") {
+                    eval(this.options.onDialogCreated);
+                }
+            }
         }
         if (this.modal === null) {
             this.modal = new bootstrap.Modal(this.dialog, { backdrop: this.options.escapeKeyCancels?true:"static", keyboard: this.options.escapeKeyCancels });
@@ -292,7 +300,7 @@ class Dialog {
         }
 
         let dialog = appendToElement(
-            createTag(dialogClasses + ".modal.draggable.fade", { tabindex : "-1", role : "dialog", "aria-hidden" : "true", "data-keyboard": "false"  }),
+            createTag(dialogClasses + ".modal.draggable", { tabindex : "-1", role : "dialog", "aria-hidden" : "true", "data-keyboard": "false"  }),
                 appendToElement(createTag(".modal-dialog.modal-dialog-centered", { role : "document" }),
                     appendToElement(createTag(".modal-content"),
                         header,
