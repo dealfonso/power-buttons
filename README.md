@@ -1,7 +1,7 @@
 ![PowerButtons Logo](img/power-buttons.png)
 
 # PowerButtons
-![GitHub license](https://img.shields.io/github/license/dealfonso/power-buttons.svg) ![GitHub release](https://img.shields.io/github/release/dealfonso/power-buttons.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/dealfonso/power-buttons.svg) ![Minified Size](https://img.shields.io/github/size/dealfonso/power-buttons/dist/powerbuttons.min.js)
+[![](https://data.jsdelivr.com/v1/package/gh/dealfonso/power-buttons/badge?style=rounded)](https://www.jsdelivr.com/package/gh/dealfonso/power-buttons) ![GitHub license](https://img.shields.io/github/license/dealfonso/power-buttons.svg) ![GitHub release](https://img.shields.io/github/release/dealfonso/power-buttons.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/dealfonso/power-buttons.svg) ![Minified Size](https://img.shields.io/github/size/dealfonso/power-buttons/dist/powerbuttons.min.js)
 
 This is a library that adds additional functionality to buttons (or any other html component) in a web page. The idea is to simplify some tasks that we usually do in web pages, such as adding a confirmation dialog prior to submitting a form, or verifying that some condition is met prior to executing a function.
 
