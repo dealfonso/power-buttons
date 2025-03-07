@@ -62,6 +62,8 @@ class Dialog {
     onHidden = null;
     // The function to call when a button is clicked (it has the prototype function(button_index, button_definition, button_object))
     onButton = null;
+    // The html objects of the buttons
+    buttons = [];
 
     constructor (options = {}, onButton = null, onHidden = null) {
         if ((exports.bootstrap === undefined) || (exports.bootstrap.Modal === undefined)) {
@@ -93,6 +95,7 @@ class Dialog {
         this.options.buttons = parsedButtons;
 
         this.dialog = null;
+        this.buttons = [];
         this.modal = null;
         this.result = null;
         this.onButton = onButton;
@@ -140,6 +143,7 @@ class Dialog {
         }
         this.dialog.remove();
         this.dialog = null;
+        this.buttons = [];
     }
 
     /**
@@ -149,7 +153,9 @@ class Dialog {
      */
     show(onButton = null, onHidden = null) {
         if (this.dialog === null) {
-            this.dialog = this._build_dialog(this.options);
+            let dialog = this._build_dialog(this.options);
+            this.dialog = dialog.dialog;
+            this.buttons = dialog.buttons;
 
             document.body.append(this.dialog);
             if (this.options.onDialogCreated !== null) {
@@ -184,6 +190,11 @@ class Dialog {
      * Hides the dialog
      */
     hide() {
+        if (this.modal === null) {
+            return new Promise((resolve) => {
+                resolve();
+            });
+        }
         this.modal.hide();
         return promiseForEvent(this.dialog, "hidden.bs.modal")
     }
@@ -265,7 +276,7 @@ class Dialog {
                 buttons.push(buttonObject);
             }
         }
-            
+
         let footer = null;
         if (parseBoolean(options.footer)) {
             footer = appendToElement(createTag(".modal-footer"), ...buttons);
@@ -309,6 +320,9 @@ class Dialog {
                     )
                 )
             );
-        return dialog;
+        return {
+            dialog: dialog,
+            buttons: buttons,
+        };
     }
 }

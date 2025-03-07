@@ -361,6 +361,7 @@ if (typeof imports === "undefined") { var imports = {}; }
 		result = null;
 		onHidden = null;
 		onButton = null;
+		buttons = [];
 		constructor(options = {}, onButton = null, onHidden = null) {
 			if (exports.bootstrap === undefined || exports.bootstrap.Modal === undefined) {
 				throw new Error("Bootstrap is required to use this class")
@@ -388,6 +389,7 @@ if (typeof imports === "undefined") { var imports = {}; }
 			}
 			this.options.buttons = parsedButtons;
 			this.dialog = null;
+			this.buttons = [];
 			this.modal = null;
 			this.result = null;
 			this.onButton = onButton;
@@ -421,11 +423,14 @@ if (typeof imports === "undefined") { var imports = {}; }
 				this.modal = null
 			}
 			this.dialog.remove();
-			this.dialog = null
+			this.dialog = null;
+			this.buttons = []
 		}
 		show(onButton = null, onHidden = null) {
 			if (this.dialog === null) {
-				this.dialog = this._build_dialog(this.options);
+				let dialog = this._build_dialog(this.options);
+				this.dialog = dialog.dialog;
+				this.buttons = dialog.buttons;
 				document.body.append(this.dialog);
 				if (this.options.onDialogCreated !== null) {
 					if (typeof this.options.onDialogCreated === "function") {
@@ -458,6 +463,11 @@ if (typeof imports === "undefined") { var imports = {}; }
 			})
 		}
 		hide() {
+			if (this.modal === null) {
+				return new Promise(resolve => {
+					resolve()
+				})
+			}
 			this.modal.hide();
 			return promiseForEvent(this.dialog, "hidden.bs.modal")
 		}
@@ -553,7 +563,10 @@ if (typeof imports === "undefined") { var imports = {}; }
 			}), appendToElement(createTag(".modal-dialog.modal-dialog-centered", {
 				role: "document"
 			}), appendToElement(createTag(".modal-content"), header, body, footer)));
-			return dialog
+			return {
+				dialog: dialog,
+				buttons: buttons
+			}
 		}
 	}
 
@@ -618,7 +631,8 @@ if (typeof imports === "undefined") { var imports = {}; }
 	Object.assign(exports.powerButtons.utils, {
 		confirmDialog: confirmDialog,
 		alertDialog: alertDialog,
-		loadingDialog: loadingDialog
+		loadingDialog: loadingDialog,
+		Dialog: Dialog
 	});
 	class PowerButtons {
 		static actionsRegistered = {};

@@ -63,5 +63,6 @@ if (exports.powerButtons.utils === undefined) {
 Object.assign(exports.powerButtons.utils, {
     confirmDialog: confirmDialog,
     alertDialog: alertDialog,
-    loadingDialog: loadingDialog
+    loadingDialog: loadingDialog,
+    Dialog: Dialog
 });
